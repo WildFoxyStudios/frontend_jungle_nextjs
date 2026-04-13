@@ -17,7 +17,7 @@ const METHODS: PaymentMethodOption[] = [
   { id: "stripe", label: "Credit / Debit Card", description: "Visa, Mastercard, AMEX", Icon: CreditCard },
   { id: "paypal", label: "PayPal", description: "Pay with your PayPal account", Icon: Wallet },
   { id: "bank_transfer", label: "Bank Transfer", description: "Manual bank transfer", Icon: Building2 },
-  { id: "wallet", label: "Wallet Balance", description: "Use your WoWonder wallet", Icon: Wallet },
+  { id: "wallet", label: "Wallet Balance", description: "Use your Jungle wallet", Icon: Wallet },
 ];
 
 interface PaymentMethodSelectorProps {

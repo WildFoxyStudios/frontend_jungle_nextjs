@@ -1,6 +1,6 @@
 /// <reference lib="webworker" />
 
-const CACHE_NAME = "wowonder-v1";
+const CACHE_NAME = "Jungle-v1";
 const OFFLINE_URL = "/offline";
 
 self.addEventListener("install", (event) => {
@@ -29,7 +29,7 @@ self.addEventListener("push", (event) => {
   if (!event.data) return;
 
   const data = event.data.json();
-  const title = data.title || "WoWonder";
+  const title = data.title || "Jungle";
   const options = {
     body: data.body || "",
     icon: data.icon || "/icon-192x192.png",

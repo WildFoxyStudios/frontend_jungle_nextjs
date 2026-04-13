@@ -46,7 +46,7 @@ export function Sidebar() {
   return (
     <nav aria-label="Main navigation" className="hidden md:flex flex-col w-64 border-r bg-background h-screen sticky top-0 overflow-y-auto p-4 gap-1">
       <div className="mb-4 px-2">
-        <Link href="/feed" className="text-xl font-bold text-primary">WoWonder</Link>
+        <Link href="/feed" className="text-xl font-bold text-primary">Jungle</Link>
       </div>
       {NAV_LINKS.map(({ href, key, Icon, badge }) => {
         const count = getBadge(badge);
