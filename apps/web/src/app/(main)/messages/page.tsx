@@ -8,11 +8,13 @@ import { Avatar, AvatarFallback, AvatarImage, Badge, Skeleton } from "@jungle/ui
 import { useAuthStore } from "@jungle/hooks";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { MessageCircle } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export default function MessagesPage() {
   const { user } = useAuthStore();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
+  const t = useTranslations("messages");
 
   useEffect(() => {
     messagesApi.getConversations()
@@ -23,7 +25,7 @@ export default function MessagesPage() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-4">
-      <h1 className="text-2xl font-bold mb-4">Messages</h1>
+      <h1 className="text-2xl font-bold mb-4">{t("title")}</h1>
       {loading ? (
         <div className="space-y-3">{[1,2,3].map((i) => <Skeleton key={i} className="h-16 w-full" />)}</div>
       ) : (
@@ -47,7 +49,7 @@ export default function MessagesPage() {
             );
           })}
           {conversations.length === 0 && (
-            <EmptyState icon={MessageCircle} title="No conversations yet" description="Start a conversation by messaging someone." />
+            <EmptyState icon={MessageCircle} title={t("noConversations")} description={t("newMessage")} />
           )}
         </div>
       )}

@@ -11,6 +11,7 @@ import {
 } from "@jungle/ui";
 import { Image as ImageIcon, Film, X } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 interface PostComposerProps {
   groupId?: number;
@@ -20,6 +21,9 @@ interface PostComposerProps {
 
 export function PostComposer({ groupId, pageId, onSuccess }: PostComposerProps) {
   const { user } = useAuthStore();
+  const t = useTranslations("feed");
+  const tp = useTranslations("post");
+  const tc = useTranslations("common");
   const { uploadImage, uploadVideo, progress, isUploading } = useMediaUpload();
   const [content, setContent] = useState("");
   const [privacy, setPrivacy] = useState<"public" | "friends" | "only_me">("public");
@@ -85,7 +89,7 @@ export function PostComposer({ groupId, pageId, onSuccess }: PostComposerProps) 
           </Avatar>
           <div className="flex-1 space-y-3">
             <Textarea
-              placeholder={`What's on your mind, ${user.first_name}?`}
+              placeholder={t("whatsOnYourMind")}
               value={content}
               onChange={(e) => setContent(e.target.value)}
               onFocus={() => setIsExpanded(true)}
@@ -121,10 +125,10 @@ export function PostComposer({ groupId, pageId, onSuccess }: PostComposerProps) 
                 <div className="flex gap-1 items-center">
                   <input ref={imageInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleImagePick} />
                   <input ref={videoInputRef} type="file" accept="video/*" className="hidden" onChange={handleVideoPick} />
-                  <Button variant="ghost" size="sm" title="Add photo" onClick={() => imageInputRef.current?.click()} disabled={isUploading}>
+                  <Button variant="ghost" size="sm" title={t("photo")} onClick={() => imageInputRef.current?.click()} disabled={isUploading}>
                     <ImageIcon className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="sm" title="Add video" onClick={() => videoInputRef.current?.click()} disabled={isUploading}>
+                  <Button variant="ghost" size="sm" title={t("video")} onClick={() => videoInputRef.current?.click()} disabled={isUploading}>
                     <Film className="h-4 w-4" />
                   </Button>
                   <Select value={privacy} onValueChange={(v) => setPrivacy(v as typeof privacy)}>
@@ -132,18 +136,18 @@ export function PostComposer({ groupId, pageId, onSuccess }: PostComposerProps) 
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="public">Public</SelectItem>
-                      <SelectItem value="friends">Friends</SelectItem>
-                      <SelectItem value="only_me">Only me</SelectItem>
+                      <SelectItem value="public">{tp("privacy.public")}</SelectItem>
+                      <SelectItem value="friends">{tp("privacy.friends")}</SelectItem>
+                      <SelectItem value="only_me">{tp("privacy.onlyMe")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="flex gap-2">
                   <Button variant="ghost" size="sm" onClick={() => { setIsExpanded(false); setContent(""); setPendingMedia([]); }}>
-                    Cancel
+                    {tc("cancel")}
                   </Button>
                   <Button size="sm" onClick={handleSubmit} disabled={isLoading || isUploading || (!content.trim() && pendingMedia.length === 0)}>
-                    {isLoading ? "Posting…" : "Post"}
+                    {isLoading ? `${tc("loading")}` : tc("submit")}
                   </Button>
                 </div>
               </div>

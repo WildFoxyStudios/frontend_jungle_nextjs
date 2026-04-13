@@ -5,10 +5,12 @@ import Link from "next/link";
 import { pagesApi } from "@jungle/api-client";
 import type { Page } from "@jungle/api-client";
 import { Button, Card, CardContent, Avatar, AvatarFallback, AvatarImage, Skeleton } from "@jungle/ui";
+import { useTranslations } from "next-intl";
 
 export default function PagesPage() {
   const [pages, setPages] = useState<Page[]>([]);
   const [loading, setLoading] = useState(true);
+  const t = useTranslations("pages");
 
   useEffect(() => {
     pagesApi.getPages().then((r) => setPages(r.data)).catch(() => {}).finally(() => setLoading(false));
@@ -17,8 +19,8 @@ export default function PagesPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-4 space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Pages</h1>
-        <Button asChild><Link href="/pages/create">Create page</Link></Button>
+        <h1 className="text-2xl font-bold">{t("title")}</h1>
+        <Button asChild><Link href="/pages/create">{t("createPage")}</Link></Button>
       </div>
       {loading ? <Skeleton className="h-48 w-full" /> : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

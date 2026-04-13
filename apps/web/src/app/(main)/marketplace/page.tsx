@@ -6,10 +6,12 @@ import Image from "next/image";
 import { productsApi } from "@jungle/api-client";
 import type { Product } from "@jungle/api-client";
 import { Button, Card, CardContent, Skeleton } from "@jungle/ui";
+import { useTranslations } from "next-intl";
 
 export default function MarketplacePage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const t = useTranslations("marketplace");
 
   useEffect(() => {
     productsApi.getProducts().then((r) => setProducts(r.data)).catch(() => {}).finally(() => setLoading(false));
@@ -18,8 +20,8 @@ export default function MarketplacePage() {
   return (
     <div className="max-w-5xl mx-auto px-4 py-4 space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Marketplace</h1>
-        <Button asChild><Link href="/marketplace/create">Sell item</Link></Button>
+        <h1 className="text-2xl font-bold">{t("title")}</h1>
+        <Button asChild><Link href="/marketplace/create">{t("addProduct")}</Link></Button>
       </div>
       {loading ? <Skeleton className="h-48 w-full" /> : (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

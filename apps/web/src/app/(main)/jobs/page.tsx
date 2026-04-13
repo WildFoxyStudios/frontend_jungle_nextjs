@@ -5,10 +5,12 @@ import Link from "next/link";
 import { jobsApi } from "@jungle/api-client";
 import type { Job } from "@jungle/api-client";
 import { Button, Card, CardContent, Skeleton } from "@jungle/ui";
+import { useTranslations } from "next-intl";
 
 export default function JobsPage() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
+  const t = useTranslations("jobs");
 
   useEffect(() => {
     jobsApi.getJobs().then((r) => setJobs(r.data)).catch(() => {}).finally(() => setLoading(false));
@@ -17,8 +19,8 @@ export default function JobsPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-4 space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Jobs</h1>
-        <Button asChild><Link href="/jobs/create">Post a job</Link></Button>
+        <h1 className="text-2xl font-bold">{t("title")}</h1>
+        <Button asChild><Link href="/jobs/create">{t("postJob")}</Link></Button>
       </div>
       {loading ? <Skeleton className="h-48 w-full" /> : (
         <div className="space-y-3">
