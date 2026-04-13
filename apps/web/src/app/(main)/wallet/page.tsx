@@ -81,9 +81,9 @@ export default function WalletPage() {
           <CardHeader><CardTitle>Balance</CardTitle></CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <p className="text-4xl font-bold">{wallet?.currency ?? "USD"} {wallet?.balance?.toFixed(2) ?? "0.00"}</p>
+              <p className="text-4xl font-bold">{wallet?.currency ?? "USD"} {Number(wallet?.balance ?? 0).toFixed(2)}</p>
               {wallet?.pending_balance !== undefined && wallet.pending_balance > 0 && (
-                <p className="text-sm text-muted-foreground mt-1">Pending: {wallet.currency} {wallet.pending_balance.toFixed(2)}</p>
+                <p className="text-sm text-muted-foreground mt-1">Pending: {wallet.currency} {Number(wallet.pending_balance).toFixed(2)}</p>
               )}
             </div>
             <div className="flex gap-2 flex-wrap">

@@ -1,3 +1,19 @@
+export interface AuthUser {
+  id: number;
+  uuid: string;
+  username: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  name: string;
+  avatar: string;
+  is_verified: boolean;
+  is_pro: number;
+  is_admin: boolean;
+  two_factor_enabled: boolean;
+  email_verified: boolean;
+}
+
 export interface User {
   id: number;
   uuid: string;

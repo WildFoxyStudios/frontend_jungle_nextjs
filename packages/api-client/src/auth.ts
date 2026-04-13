@@ -1,5 +1,5 @@
 ﻿import { api } from "./client";
-import type { User } from "./types/index";
+import type { AuthUser, UserSession } from "./types/index";
 
 export interface LoginPayload {
   identifier: string;
@@ -7,11 +7,19 @@ export interface LoginPayload {
   two_factor_code?: string;
 }
 
-export interface LoginResponse {
+export interface AuthResponse {
   access_token: string;
-  user: User;
-  requires_2fa?: boolean;
+  refresh_token: string;
+  expires_in: number;
+  user: AuthUser;
 }
+
+export interface TwoFactorRequired {
+  requires_2fa: true;
+  session_token: string;
+}
+
+export type LoginResult = AuthResponse | TwoFactorRequired;
 
 export interface RegisterPayload {
   username: string;
@@ -22,26 +30,62 @@ export interface RegisterPayload {
   invite_code?: string;
 }
 
+function isAuthResponse(data: LoginResult): data is AuthResponse {
+  return "access_token" in data;
+}
+
 export const authApi = {
-  login: (data: LoginPayload) => api.post<LoginResponse>("/v1/auth/login", data),
-  register: (data: RegisterPayload) => api.post<LoginResponse>("/v1/auth/register", data),
+  login: async (data: LoginPayload): Promise<LoginResult> => {
+    const res = await api.post<LoginResult>("/v1/auth/login", data);
+    return res;
+  },
+
+  register: (data: RegisterPayload) =>
+    api.post<AuthResponse>("/v1/auth/register", data),
+
   logout: () => api.post<void>("/v1/auth/logout"),
-  refresh: () => api.post<{ access_token: string }>("/v1/auth/refresh"),
-  forgotPassword: (email: string) => api.post<void>("/v1/auth/forgot-password", { email }),
+
+  refresh: () =>
+    api.post<{ access_token: string; expires_in: number }>("/v1/auth/refresh"),
+
+  forgotPassword: (email: string) =>
+    api.post<{ message: string }>("/v1/auth/forgot-password", { email }),
+
   resetPassword: (token: string, password: string) =>
-    api.post<void>("/v1/auth/reset-password", { token, password }),
-  verifyEmail: (code: string) => api.post<void>("/v1/auth/verify-email", { code }),
-  verifyPhone: (code: string) => api.post<void>("/v1/auth/verify-phone", { code }),
+    api.post<{ message: string }>("/v1/auth/reset-password", { token, password }),
+
+  verifyEmail: (code: string) =>
+    api.post<{ message: string }>("/v1/auth/verify-email", { code }),
+
+  verifyPhone: (code: string) =>
+    api.post<{ message: string }>("/v1/auth/verify-phone", { code }),
+
   resendVerification: (type: "email" | "phone") =>
-    api.post<void>("/v1/auth/resend-code", { type }),
-  enable2FA: () => api.post<{ qr_code: string; secret: string }>("/v1/auth/2fa/enable"),
-  disable2FA: (code: string) => api.post<void>("/v1/auth/2fa/disable", { code }),
-  verify2FA: (code: string) => api.post<{ access_token: string }>("/v1/auth/2fa/verify", { code }),
-  getBackupCodes: () => api.get<{ codes: string[] }>("/v1/auth/2fa/backup-codes"),
+    api.post<{ message: string }>("/v1/auth/resend-code", { type }),
+
+  enable2FA: () =>
+    api.post<{ qr_code: string; secret: string }>("/v1/auth/2fa/enable"),
+
+  disable2FA: (code: string) =>
+    api.post<void>("/v1/auth/2fa/disable", { code }),
+
+  verify2FA: (code: string) =>
+    api.post<AuthResponse>("/v1/auth/2fa/verify", { code }),
+
+  getBackupCodes: () =>
+    api.get<{ codes: string[] }>("/v1/auth/2fa/backup-codes"),
+
   socialLogin: (provider: string, code: string) =>
-    api.post<LoginResponse>(`/v1/auth/social/${provider}`, { code }),
-  getSessions: () => api.get<import("./types/index").UserSession[]>("/v1/auth/sessions"),
-  revokeSession: (id: string) => api.delete<void>(`/v1/auth/sessions/${id}`),
+    api.post<AuthResponse>(`/v1/auth/social/${provider}`, { code }),
+
+  getSessions: () =>
+    api.get<UserSession[]>("/v1/auth/sessions"),
+
+  revokeSession: (id: string) =>
+    api.delete<void>(`/v1/auth/sessions/${id}`),
+
   changePassword: (current_password: string, new_password: string) =>
-    api.put<void>("/v1/auth/password", { current_password, new_password }),
+    api.put<{ message: string }>("/v1/auth/password", { current_password, new_password }),
+
+  isAuthResponse,
 };

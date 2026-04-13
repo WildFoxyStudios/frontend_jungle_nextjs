@@ -8,24 +8,20 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { z } from "zod";
 import { loginSchema } from "@jungle/utils";
-import { authApi } from "@jungle/api-client";
+import { authApi, RateLimitError } from "@jungle/api-client";
 import { useAuthStore } from "@jungle/hooks";
 import {
   Button, Input, Label, Card, CardContent, CardHeader, CardTitle,
   CardDescription, Separator,
 } from "@jungle/ui";
+import { toast } from "sonner";
 
 type LoginForm = z.infer<typeof loginSchema>;
-
-const SOCIAL_PROVIDERS = [
-  "google", "facebook", "twitter", "apple", "linkedin", "discord",
-  "tiktok", "instagram", "vkontakte", "qq", "wechat", "mailru", "okru", "wordpress",
-];
 
 export default function LoginPage() {
   const router = useRouter();
   const t = useTranslations("auth");
-  const { setUser, setToken } = useAuthStore();
+  const { handleAuthResponse } = useAuthStore();
   const [requires2FA, setRequires2FA] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -39,16 +35,24 @@ export default function LoginPage() {
     setError(null);
     try {
       const res = await authApi.login(data);
-      if ("requires_2fa" in res && res.requires_2fa) {
+
+      if (!authApi.isAuthResponse(res)) {
         setRequires2FA(true);
         return;
       }
-      setToken(res.access_token);
-      setUser(res.user);
+
+      handleAuthResponse(res);
       router.push("/feed");
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Invalid credentials";
+      let msg: string;
+      if (err instanceof RateLimitError) {
+        const mins = Math.ceil(err.retryAfter / 60);
+        msg = `Too many attempts. Please try again in ${mins} minute${mins > 1 ? "s" : ""}.`;
+      } else {
+        msg = err instanceof Error ? err.message : t("invalidCredentials");
+      }
       setError(msg);
+      toast.error(msg);
     } finally {
       setIsLoading(false);
     }
@@ -89,16 +93,6 @@ export default function LoginPage() {
         </div>
 
         <Separator />
-
-        <div className="grid grid-cols-7 gap-2">
-          {SOCIAL_PROVIDERS.map((provider) => (
-            <Button key={provider} variant="outline" size="sm" asChild>
-              <a href={`/api/auth/${provider}`} title={provider} className="capitalize text-xs">
-                {provider.slice(0, 2).toUpperCase()}
-              </a>
-            </Button>
-          ))}
-        </div>
 
         <p className="text-center text-sm text-muted-foreground">
           {t("noAccount")}{" "}

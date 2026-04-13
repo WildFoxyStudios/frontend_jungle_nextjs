@@ -8,6 +8,7 @@ import {
   DropdownMenuSeparator, DropdownMenuTrigger,
   Avatar, AvatarFallback, AvatarImage, Button,
 } from "@jungle/ui";
+import { resolveAvatarUrl } from "@/lib/avatar";
 
 export function UserMenu() {
   const router = useRouter();
@@ -25,7 +26,7 @@ export function UserMenu() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" className="rounded-full">
           <Avatar className="h-8 w-8">
-            <AvatarImage src={user.avatar} alt={user.username} />
+            <AvatarImage src={resolveAvatarUrl(user.avatar)} alt={user.username} />
             <AvatarFallback>{user.first_name[0]}</AvatarFallback>
           </Avatar>
         </Button>

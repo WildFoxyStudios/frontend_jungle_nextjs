@@ -82,7 +82,7 @@ export function ProfileClient({ username }: { username: string }) {
           <div className="relative">
             <Avatar className="h-24 w-24 border-4 border-background">
               <AvatarImage src={profile.avatar} />
-              <AvatarFallback className="text-2xl">{profile.first_name[0]}</AvatarFallback>
+              <AvatarFallback className="text-2xl">{profile.first_name?.[0] ?? "?"}</AvatarFallback>
             </Avatar>
           </div>
           <div className="flex gap-2 mt-2">

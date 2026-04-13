@@ -7,13 +7,19 @@ import {
   ValidationError,
 } from "./errors";
 
-type RefreshCallback = (token: string) => void;
+type RefreshCallback = { resolve: (ok: boolean) => void };
+type AuthFailureHandler = () => void;
+type RefreshTokenUpdater = (accessToken: string, refreshToken: string) => void;
 
 export class ApiClient {
   private accessToken: string | null = null;
+  private refreshToken: string | null = null;
   private isRefreshing = false;
-  private refreshQueue: Array<RefreshCallback> = [];
+  private refreshPromise: Promise<boolean> | null = null;
+  private authFailureFired = false;
   private baseUrl: string;
+  private onAuthFailure: AuthFailureHandler | null = null;
+  private onTokenRefreshed: RefreshTokenUpdater | null = null;
 
   constructor(baseUrl = "/api") {
     this.baseUrl = baseUrl;
@@ -21,10 +27,30 @@ export class ApiClient {
 
   setToken(token: string): void {
     this.accessToken = token;
+    this.authFailureFired = false;
+  }
+
+  setRefreshToken(token: string): void {
+    this.refreshToken = token;
   }
 
   clearToken(): void {
     this.accessToken = null;
+    this.refreshToken = null;
+  }
+
+  setOnAuthFailure(handler: AuthFailureHandler): void {
+    this.onAuthFailure = handler;
+  }
+
+  setOnTokenRefreshed(handler: RefreshTokenUpdater): void {
+    this.onTokenRefreshed = handler;
+  }
+
+  private fireAuthFailure(): void {
+    if (this.authFailureFired) return;
+    this.authFailureFired = true;
+    this.onAuthFailure?.();
   }
 
   async request<T>(path: string, options: RequestInit = {}): Promise<T> {
@@ -50,11 +76,13 @@ export class ApiClient {
       throw new NetworkError();
     }
 
-    if (response.status === 401) {
+    if (response.status === 401 && this.refreshToken) {
       const refreshed = await this.handleRefresh();
-      if (!refreshed) throw new AuthError();
+      if (!refreshed) {
+        this.fireAuthFailure();
+        throw new AuthError();
+      }
 
-      // Retry with new token
       headers["Authorization"] = `Bearer ${this.accessToken!}`;
       try {
         response = await fetch(url, {
@@ -66,44 +94,64 @@ export class ApiClient {
         throw new NetworkError();
       }
 
-      if (response.status === 401) throw new AuthError();
+      if (response.status === 401) {
+        this.fireAuthFailure();
+        throw new AuthError();
+      }
+    } else if (response.status === 401) {
+      this.fireAuthFailure();
+      throw new AuthError();
+    }
+
+    if (response.status === 429) {
+      const retryAfter = Number(response.headers.get("Retry-After") ?? response.headers.get("retry-after") ?? 60);
+      throw new RateLimitError(retryAfter);
     }
 
     return this.handleResponse<T>(response);
   }
 
   private async handleRefresh(): Promise<boolean> {
-    if (this.isRefreshing) {
-      return new Promise<boolean>((resolve) => {
-        this.refreshQueue.push((token) => {
-          this.accessToken = token;
-          resolve(true);
-        });
-      });
+    if (this.isRefreshing && this.refreshPromise) {
+      return this.refreshPromise;
     }
 
     this.isRefreshing = true;
+    this.refreshPromise = this.doRefresh();
+
+    try {
+      return await this.refreshPromise;
+    } finally {
+      this.isRefreshing = false;
+      this.refreshPromise = null;
+    }
+  }
+
+  private async doRefresh(): Promise<boolean> {
+    if (!this.refreshToken) return false;
+
     try {
       const res = await fetch(`${this.baseUrl}/v1/auth/refresh`, {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
+        body: JSON.stringify({ refresh_token: this.refreshToken }),
       });
 
-      if (!res.ok) {
-        this.isRefreshing = false;
-        this.refreshQueue = [];
-        return false;
-      }
+      if (!res.ok) return false;
 
-      const data = (await res.json()) as { access_token: string };
+      const raw = (await res.json()) as Record<string, unknown>;
+      const data = (raw && typeof raw === "object" && "data" in raw ? raw.data : raw) as {
+        access_token: string;
+        refresh_token: string;
+        expires_in: number;
+      };
+
       this.accessToken = data.access_token;
-      this.refreshQueue.forEach((cb) => cb(data.access_token));
-      this.refreshQueue = [];
-      this.isRefreshing = false;
+      this.refreshToken = data.refresh_token;
+      this.onTokenRefreshed?.(data.access_token, data.refresh_token);
       return true;
     } catch {
-      this.isRefreshing = false;
-      this.refreshQueue = [];
       return false;
     }
   }
@@ -135,6 +183,10 @@ export class ApiClient {
       throw new ApiError(code, message, details, response.status);
     }
 
+    const envelope = data as Record<string, unknown>;
+    if (envelope && typeof envelope === "object" && "data" in envelope && Object.keys(envelope).length === 1) {
+      return envelope.data as T;
+    }
     return data as T;
   }
 

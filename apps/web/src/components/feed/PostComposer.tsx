@@ -4,6 +4,7 @@ import { useState, useRef, useCallback } from "react";
 import Image from "next/image";
 import { useAuthStore, useMediaUpload } from "@jungle/hooks";
 import { postsApi } from "@jungle/api-client";
+import { resolveAvatarUrl } from "@/lib/avatar";
 import type { Post, MediaItem } from "@jungle/api-client";
 import {
   Avatar, AvatarFallback, AvatarImage, Button, Card, CardContent, Textarea,
@@ -84,7 +85,7 @@ export function PostComposer({ groupId, pageId, onSuccess }: PostComposerProps) 
       <CardContent className="p-4">
         <div className="flex gap-3">
           <Avatar className="h-10 w-10 shrink-0">
-            <AvatarImage src={user.avatar} />
+            <AvatarImage src={resolveAvatarUrl(user.avatar)} />
             <AvatarFallback>{user.first_name[0]}</AvatarFallback>
           </Avatar>
           <div className="flex-1 space-y-3">

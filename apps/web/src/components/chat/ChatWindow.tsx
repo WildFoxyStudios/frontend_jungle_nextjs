@@ -44,7 +44,7 @@ export function ChatWindow({ conversationId }: ChatWindowProps) {
       is_pinned: false,
       reactions: {},
       created_at: new Date().toISOString(),
-      sender: user ?? { id: 0, uuid: "", username: "", first_name: "You", last_name: "", avatar: "", is_verified: false, is_online: true, is_pro: 0 },
+      sender: user ? { ...user, is_online: true } : { id: 0, uuid: "", username: "", first_name: "You", last_name: "", avatar: "", is_verified: false, is_online: true, is_pro: 0 },
     };
     setMessages((prev) => [...prev, optimistic]);
     setContent("");

@@ -1,8 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { z } from "zod";
 import { registerSchema } from "@jungle/utils";
@@ -12,20 +14,13 @@ import {
   Button, Input, Label, Card, CardContent, CardHeader, CardTitle,
   CardDescription, Separator,
 } from "@jungle/ui";
-import { useState } from "react";
 import { toast } from "sonner";
-import { useTranslations } from "next-intl";
 
 type RegisterForm = z.infer<typeof registerSchema>;
 
-const SOCIAL_PROVIDERS = [
-  "google", "facebook", "twitter", "apple", "linkedin", "discord",
-  "tiktok", "instagram", "vkontakte", "qq", "wechat", "mailru", "okru", "wordpress",
-];
-
 export default function RegisterPage() {
   const router = useRouter();
-  const { setUser, setToken } = useAuthStore();
+  const { handleAuthResponse } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const t = useTranslations("auth");
@@ -40,8 +35,7 @@ export default function RegisterPage() {
     setError(null);
     try {
       const res = await authApi.register(data);
-      setToken(res.access_token);
-      setUser(res.user);
+      handleAuthResponse(res);
       router.push("/feed");
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Registration failed";
@@ -87,27 +81,13 @@ export default function RegisterPage() {
             <Input id="password" type="password" {...register("password")} />
             {errors.password && <p className="text-sm text-destructive">{errors.password.message}</p>}
           </div>
-          <div className="space-y-1">
-            <Label htmlFor="invite_code">Invite code (optional)</Label>
-            <Input id="invite_code" {...register("invite_code")} />
-          </div>
           {error && <p className="text-sm text-destructive rounded-md bg-destructive/10 px-3 py-2">{error}</p>}
           <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? `${t("signingIn")}` : t("signUp")}
+            {isLoading ? t("signingIn") : t("signUp")}
           </Button>
         </form>
 
         <Separator />
-
-        <div className="grid grid-cols-7 gap-2">
-          {SOCIAL_PROVIDERS.map((provider) => (
-            <Button key={provider} variant="outline" size="sm" asChild>
-              <a href={`/api/auth/${provider}`} title={provider} className="capitalize text-xs">
-                {provider.slice(0, 2).toUpperCase()}
-              </a>
-            </Button>
-          ))}
-        </div>
 
         <p className="text-center text-sm text-muted-foreground">
           {t("hasAccount")}{" "}

@@ -4,7 +4,6 @@ import createNextIntlPlugin from "next-intl/plugin";
 const withNextIntl = createNextIntlPlugin("./src/i18n.ts");
 
 const BACKEND_URL = process.env["BACKEND_URL"] ?? "http://localhost:8080";
-const WS_URL     = process.env["WS_URL"]      ?? "ws://localhost:8080";
 
 const nextConfig: NextConfig = {
   images: {
@@ -13,7 +12,7 @@ const nextConfig: NextConfig = {
       { protocol: "http",  hostname: "localhost" },
     ],
   },
-  experimental: { typedRoutes: false },
+  typedRoutes: false,
   async rewrites() {
     return [
       {
@@ -22,7 +21,11 @@ const nextConfig: NextConfig = {
       },
       {
         source: "/ws",
-        destination: `${WS_URL}/ws`,
+        destination: `${BACKEND_URL}/ws`,
+      },
+      {
+        source: "/ws/:path*",
+        destination: `${BACKEND_URL}/ws/:path*`,
       },
     ];
   },

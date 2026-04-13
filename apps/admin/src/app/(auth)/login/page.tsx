@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { authApi } from "@jungle/api-client";
-import { api } from "@jungle/api-client";
+import { authApi, api } from "@jungle/api-client";
 import { Button, Card, CardContent, Input, Label } from "@jungle/ui";
 import { toast } from "sonner";
 
@@ -21,10 +20,17 @@ export default function AdminLoginPage() {
     setIsLoading(true);
     try {
       const res = await authApi.login({ identifier: email, password });
-      if (!res.user.is_admin) {
+
+      if (!authApi.isAuthResponse(res)) {
+        toast.error("2FA is not supported in admin panel yet");
+        return;
+      }
+
+      if (!res.user?.is_admin) {
         toast.error("You are not authorized to access the admin panel");
         return;
       }
+
       api.setToken(res.access_token);
       document.cookie = `Jungle_logged_in=1; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`;
       document.cookie = `Jungle_is_admin=1; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`;

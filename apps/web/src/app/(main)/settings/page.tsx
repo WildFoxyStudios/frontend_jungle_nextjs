@@ -15,6 +15,7 @@ type ProfileForm = Pick<User, "first_name" | "last_name" | "about" | "gender" | 
 
 export default function SettingsPage() {
   const { user, setUser } = useAuthStore();
+  const [profile, setProfile] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const t = useTranslations("settings");
   const tp = useTranslations("profile");
@@ -23,24 +24,26 @@ export default function SettingsPage() {
   const { register, handleSubmit, reset, setValue, watch } = useForm<ProfileForm>();
 
   useEffect(() => {
-    if (user) {
+    usersApi.getMe().then((me) => {
+      setProfile(me);
       reset({
-        first_name: user.first_name,
-        last_name: user.last_name,
-        about: user.about ?? "",
-        gender: user.gender ?? "",
-        birthday: user.birthday ?? "",
-        website: user.website ?? "",
-        location: user.location ?? "",
+        first_name: me.first_name,
+        last_name: me.last_name,
+        about: me.about ?? "",
+        gender: me.gender ?? "",
+        birthday: me.birthday ?? "",
+        website: me.website ?? "",
+        location: me.location ?? "",
       });
-    }
-  }, [user, reset]);
+    }).catch(() => {});
+  }, [reset]);
 
   const onSubmit = async (data: ProfileForm) => {
     setIsLoading(true);
     try {
       const updated = await usersApi.updateMe(data);
-      setUser(updated);
+      setProfile(updated);
+      setUser({ ...user!, first_name: updated.first_name, last_name: updated.last_name, avatar: updated.avatar, name: `${updated.first_name} ${updated.last_name}`.trim() });
       toast.success(tp("profileUpdated"));
     } catch (err) {
       toast.error(err instanceof Error ? err.message : tc("error"));

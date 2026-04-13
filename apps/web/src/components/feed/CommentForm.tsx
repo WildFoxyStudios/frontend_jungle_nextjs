@@ -5,6 +5,7 @@ import { postsApi } from "@jungle/api-client";
 import type { Comment } from "@jungle/api-client";
 import { useAuthStore } from "@jungle/hooks";
 import { Avatar, AvatarFallback, AvatarImage, Button, Input } from "@jungle/ui";
+import { resolveAvatarUrl } from "@/lib/avatar";
 import { toast } from "sonner";
 
 interface CommentFormProps {
@@ -41,7 +42,7 @@ export function CommentForm({ postId, replyTo, onSuccess }: CommentFormProps) {
   return (
     <form onSubmit={handleSubmit} className="flex items-center gap-2">
       <Avatar className="h-8 w-8 shrink-0">
-        <AvatarImage src={user.avatar} />
+        <AvatarImage src={resolveAvatarUrl(user.avatar)} />
         <AvatarFallback>{user.first_name[0]}</AvatarFallback>
       </Avatar>
       <Input

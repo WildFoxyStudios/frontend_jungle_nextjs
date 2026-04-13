@@ -10,6 +10,7 @@ import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, Textare
 import { useMediaUpload } from "@jungle/hooks";
 import { toast } from "sonner";
 import Image from "next/image";
+import { resolveAvatarUrl } from "@/lib/avatar";
 
 const profileSchema = z.object({
   first_name: z.string().min(1, "Required").max(50),
@@ -56,7 +57,7 @@ export default function ProfileSettingsPage() {
   const onSubmit = async (data: ProfileForm) => {
     try {
       const updated = await usersApi.updateMe(data);
-      setUser(updated);
+      setUser({ ...user!, first_name: updated.first_name, last_name: updated.last_name, avatar: updated.avatar, name: `${updated.first_name} ${updated.last_name}`.trim() });
       toast.success("Profile saved");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to save profile");
@@ -88,7 +89,7 @@ export default function ProfileSettingsPage() {
         <CardHeader><CardTitle>Profile Photo</CardTitle></CardHeader>
         <CardContent className="flex items-center gap-6">
           <div className="relative h-24 w-24 rounded-full overflow-hidden bg-muted shrink-0">
-            {user?.avatar && <Image src={user.avatar} alt="Avatar" fill className="object-cover" />}
+            {user?.avatar && <Image src={resolveAvatarUrl(user.avatar)} alt="Avatar" fill className="object-cover" />}
           </div>
           <div className="space-y-2">
             <input type="file" accept="image/*" className="hidden" id="avatar-input" onChange={handleAvatarChange} />
