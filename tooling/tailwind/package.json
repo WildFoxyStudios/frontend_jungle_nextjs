@@ -1,0 +1,9 @@
+{
+  "name": "@jungle/tailwind-config",
+  "version": "0.0.1",
+  "private": true,
+  "main": "tailwind.config.ts",
+  "dependencies": {
+    "tailwindcss": "^4.0.0"
+  }
+}

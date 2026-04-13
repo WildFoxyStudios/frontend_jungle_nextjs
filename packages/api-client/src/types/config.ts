@@ -1,0 +1,57 @@
+export interface PublicConfig {
+  site_name: string;
+  site_url: string;
+  site_description: string;
+  logo: string;
+  favicon: string;
+  cover_image?: string;
+  primary_color: string;
+  allow_registration: boolean;
+  invitation_only: boolean;
+  email_verification: boolean;
+  phone_verification: boolean;
+  website_mode: "normal" | "linkedin" | "instagram" | "patreon";
+  features: {
+    groups: boolean;
+    pages: boolean;
+    events: boolean;
+    blogs: boolean;
+    forums: boolean;
+    marketplace: boolean;
+    jobs: boolean;
+    funding: boolean;
+    movies: boolean;
+    games: boolean;
+    stories: boolean;
+    reels: boolean;
+    live: boolean;
+    pokes: boolean;
+    gifts: boolean;
+    colored_posts: boolean;
+    points: boolean;
+    affiliates: boolean;
+    ads: boolean;
+    monetization: boolean;
+    ai: boolean;
+  };
+  oauth_providers: {
+    google: boolean;
+    facebook: boolean;
+    twitter: boolean;
+    apple: boolean;
+    linkedin: boolean;
+    discord: boolean;
+    tiktok: boolean;
+    instagram: boolean;
+    vkontakte: boolean;
+    qq: boolean;
+    wechat: boolean;
+    mailru: boolean;
+    okru: boolean;
+    wordpress: boolean;
+  };
+  payment_gateways: string[];
+  default_language: string;
+  rtl_languages: string[];
+  timezone: string;
+}
