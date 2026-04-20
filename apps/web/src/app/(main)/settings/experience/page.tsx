@@ -1,4 +1,4 @@
-ï»¿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -37,7 +37,7 @@ export default function ExperiencePage() {
   useEffect(() => {
     usersApi.getExperience()
       .then(setExperiences)
-      .catch(() => {})
+      .catch(() => { /* non-critical: failure is silent */ })
       .finally(() => setLoading(false));
   }, []);
 
@@ -99,7 +99,7 @@ export default function ExperiencePage() {
               </div>
               <div className="space-y-1.5">
                 <Label>Description</Label>
-                <Textarea {...register("description")} rows={2} placeholder="Describe your roleâ€¦" />
+                <Textarea {...register("description")} rows={2} placeholder="Describe your role…" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
@@ -119,7 +119,7 @@ export default function ExperiencePage() {
                 <Label htmlFor="is_current">I currently work here</Label>
               </div>
               <div className="flex gap-2">
-                <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Savingâ€¦" : "Save"}</Button>
+                <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Saving…" : "Save"}</Button>
                 <Button type="button" variant="outline" onClick={() => { setShowForm(false); reset(); }}>Cancel</Button>
               </div>
             </form>
@@ -139,9 +139,9 @@ export default function ExperiencePage() {
             </div>
             <div className="flex-1 space-y-0.5">
               <p className="font-semibold">{exp.title}</p>
-              <p className="text-sm text-muted-foreground">{exp.company}{exp.location ? ` Â· ${exp.location}` : ""}</p>
+              <p className="text-sm text-muted-foreground">{exp.company}{exp.location ? ` · ${exp.location}` : ""}</p>
               <p className="text-xs text-muted-foreground">
-                {exp.start_date} â€” {exp.is_current ? <Badge variant="secondary" className="text-xs">Present</Badge> : exp.end_date}
+                {exp.start_date} — {exp.is_current ? <Badge variant="secondary" className="text-xs">Present</Badge> : exp.end_date}
               </p>
               {exp.description && <p className="text-sm mt-1">{exp.description}</p>}
             </div>

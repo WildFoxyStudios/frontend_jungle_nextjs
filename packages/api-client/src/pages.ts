@@ -1,5 +1,6 @@
-﻿import { api } from "./client";
+import { api } from "./client";
 import type { Page, PaginatedResponse, PublicUser } from "./types/index";
+// Re-export NearbyPage (defined below) via the barrel so consumers can import it.
 
 export const pagesApi = {
   getPages: (cursor?: string) =>
@@ -21,8 +22,8 @@ export const pagesApi = {
   deletePage: (id: number) => api.delete<void>(`/v1/pages/${id}`),
   likePage: (id: number) => api.post<void>(`/v1/pages/${id}/like`),
   unlikePage: (id: number) => api.delete<void>(`/v1/pages/${id}/like`),
-  ratePage: (id: number, rating: number) =>
-    api.post<void>(`/v1/pages/${id}/rate`, { rating }),
+  ratePage: (id: number, rating: number, comment?: string) =>
+    api.post<void>(`/v1/pages/${id}/rate`, { rating, comment }),
   getPageRatings: (id: number) => api.get<unknown[]>(`/v1/pages/${id}/ratings`),
   getPageLikers: (id: number, cursor?: string) =>
     api.get<PaginatedResponse<PublicUser>>(`/v1/pages/${id}/likes`, { cursor }),
@@ -44,6 +45,45 @@ export const pagesApi = {
   getNonLikers: (id: number, cursor?: string) =>
     api.get<PaginatedResponse<PublicUser>>(`/v1/pages/${id}/non-likes`, { cursor }),
   checkName: (name: string) => api.get<{ available: boolean }>("/v1/pages/check-name", { name }),
+  getPageOffers: (pageId: number, cursor?: string) =>
+    api.get<PaginatedResponse<{ id: number; title: string; description: string; discount: string; image?: string; expires_at?: string; created_at: string }>>(`/v1/pages/${pageId}/offers`, { cursor }),
+  createPageOffer: (pageId: number, data: { title: string; description: string; discount: string; image?: string; expires_at?: string }) =>
+    api.post<{ id: number }>(`/v1/pages/${pageId}/offers`, data),
+  deletePageOffer: (pageId: number, offerId: number) =>
+    api.delete<void>(`/v1/pages/${pageId}/offers/${offerId}`),
   getBoostedPages: (cursor?: string) =>
     api.get<PaginatedResponse<Page>>("/v1/boosted/pages", { cursor }),
+  getPageServices: (pageId: number) =>
+    api.get<{ id: number; title: string; description: string; price: string; image?: string }[]>(`/v1/pages/${pageId}/services`),
+  createPageService: (pageId: number, data: { title: string; description: string; price: string; image?: string }) =>
+    api.post<{ id: number }>(`/v1/pages/${pageId}/services`, data),
+  deletePageService: (pageId: number, serviceId: number) =>
+    api.delete<void>(`/v1/pages/${pageId}/services/${serviceId}`),
+  getNearbyPages: (params: {
+    lat: number;
+    lng: number;
+    radius_km?: number;
+    category?: string;
+    limit?: number;
+  }) =>
+    api.get<NearbyPage[]>(
+      "/v1/pages/nearby",
+      params as unknown as Record<string, string | number | boolean>
+    ),
 };
+
+export interface NearbyPage {
+  id: number;
+  page_name: string;
+  page_title: string;
+  avatar: string;
+  cover: string;
+  about: string;
+  category_id: number | null;
+  address: string;
+  is_verified: boolean;
+  like_count: number;
+  lat: number | null;
+  lng: number | null;
+  distance_km: number;
+}

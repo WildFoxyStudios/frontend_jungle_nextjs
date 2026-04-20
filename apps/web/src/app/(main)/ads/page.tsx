@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -10,7 +10,7 @@ export default function AdsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    contentApi.getUserAds().then((r) => setAds(r.data)).catch(() => {}).finally(() => setLoading(false));
+    contentApi.getUserAds().then((r) => setAds(r.data)).catch(() => { /* non-critical: failure is silent */ }).finally(() => setLoading(false));
   }, []);
 
   return (
@@ -26,7 +26,7 @@ export default function AdsPage() {
               <CardContent className="p-4 flex items-center justify-between">
                 <div>
                   <p className="font-semibold">{ad.name}</p>
-                  <p className="text-sm text-muted-foreground">{ad.impressions} impressions · {ad.clicks} clicks</p>
+                  <p className="text-sm text-muted-foreground">{ad.impressions} impressions � {ad.clicks} clicks</p>
                 </div>
                 <Button variant="outline" size="sm" asChild><Link href={`/ads/${ad.id}/stats`}>Stats</Link></Button>
               </CardContent>

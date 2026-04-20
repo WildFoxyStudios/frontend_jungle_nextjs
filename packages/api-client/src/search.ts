@@ -1,4 +1,4 @@
-﻿import { api } from "./client";
+import { api } from "./client";
 import type { PaginatedResponse, Post } from "./types/index";
 
 export interface SearchResults {
@@ -9,6 +9,7 @@ export interface SearchResults {
   hashtags?: { tag: string; count: number }[];
   blogs?: unknown[];
   products?: unknown[];
+  events?: unknown[];
 }
 
 export const searchApi = {

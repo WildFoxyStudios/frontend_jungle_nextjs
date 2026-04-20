@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { usersApi } from "@jungle/api-client";
@@ -43,7 +43,7 @@ export default function PrivacySettingsPage() {
         const ps = (user as { privacy_settings?: PrivacySettings }).privacy_settings;
         if (ps) setSettings(ps);
       })
-      .catch(() => {})
+      .catch(() => { /* non-critical: failure is silent */ })
       .finally(() => setLoading(false));
   }, []);
 
@@ -98,7 +98,7 @@ export default function PrivacySettingsPage() {
         </div>
 
         <Button onClick={handleSave} disabled={saving} className="w-full">
-          {saving ? "Saving…" : "Save Privacy Settings"}
+          {saving ? "Saving�" : "Save Privacy Settings"}
         </Button>
       </CardContent>
     </Card>

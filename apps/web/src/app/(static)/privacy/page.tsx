@@ -1,8 +1,34 @@
-export default function PrivacyPage() {
+import { contentApi } from "@jungle/api-client";
+
+export const revalidate = 3600; // revalidate every hour
+
+export default async function PrivacyPage() {
+  let content = "";
+  let title = "Privacy Policy";
+
+  try {
+    const page = await contentApi.getCustomPage("privacy");
+    if (page) {
+      title = page.title ?? title;
+      content = page.content ?? "";
+    }
+  } catch {
+    // fallback to empty if not configured
+  }
+
   return (
-    <div className="max-w-3xl mx-auto px-4 py-12 space-y-4">
-      <h1 className="text-3xl font-bold">Privacy Policy</h1>
-      <p className="text-muted-foreground">Your privacy is important to us. This policy explains how we handle your data.</p>
+    <div className="max-w-3xl mx-auto px-4 py-12 space-y-6">
+      <h1 className="text-3xl font-bold">{title}</h1>
+      {content ? (
+        <div
+          className="prose prose-sm dark:prose-invert max-w-none"
+          dangerouslySetInnerHTML={{ __html: content }}
+        />
+      ) : (
+        <p className="text-muted-foreground">
+          Privacy policy has not been configured yet. Please contact the site administrator.
+        </p>
+      )}
     </div>
   );
 }

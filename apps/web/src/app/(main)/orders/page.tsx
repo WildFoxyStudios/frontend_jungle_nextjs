@@ -4,13 +4,17 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { commerceApi } from "@jungle/api-client";
 import { Card, CardContent, Skeleton } from "@jungle/ui";
+import { toast } from "sonner";
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    commerceApi.getOrders().then((r) => setOrders(r.data)).catch(() => {}).finally(() => setLoading(false));
+    commerceApi.getOrders()
+      .then((r) => setOrders(r.data))
+      .catch((err) => toast.error(err instanceof Error ? err.message : "Failed to load orders"))
+      .finally(() => setLoading(false));
   }, []);
 
   return (

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { usersApi } from "@jungle/api-client";
@@ -13,7 +13,7 @@ export default function PointsPage() {
   useEffect(() => {
     usersApi.getMe()
       .then(setUser)
-      .catch(() => {})
+      .catch(() => { /* non-critical: failure is silent */ })
       .finally(() => setLoading(false));
   }, []);
 

@@ -7,9 +7,7 @@ import { z } from "zod";
 import { usersApi } from "@jungle/api-client";
 import { useAuthStore } from "@jungle/hooks";
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, Textarea, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Skeleton } from "@jungle/ui";
-import { useMediaUpload } from "@jungle/hooks";
 import { toast } from "sonner";
-import Image from "next/image";
 import { resolveAvatarUrl } from "@/lib/avatar";
 
 const profileSchema = z.object({
@@ -29,8 +27,8 @@ type ProfileForm = z.infer<typeof profileSchema>;
 
 export default function ProfileSettingsPage() {
   const { user, setUser } = useAuthStore();
-  const { uploadImage, progress, isUploading } = useMediaUpload();
   const [loading, setLoading] = useState(true);
+  const [isUploading, setIsUploading] = useState(false);
 
   const { register, handleSubmit, reset, setValue, watch, formState: { errors, isSubmitting } } = useForm<ProfileForm>({
     resolver: zodResolver(profileSchema),
@@ -47,8 +45,8 @@ export default function ProfileSettingsPage() {
         birthday: u.birthday ?? "",
         location: u.location ?? "",
         website: u.website ?? "",
-        working: (u as { working?: string }).working ?? "",
-        school: (u as { school?: string }).school ?? "",
+        working: u.working ?? "",
+        school: u.school ?? "",
       });
       setLoading(false);
     }).catch(() => { toast.error("Failed to load profile"); setLoading(false); });
@@ -67,15 +65,19 @@ export default function ProfileSettingsPage() {
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const media = await uploadImage(file, "avatar");
-    if (media) {
+    setIsUploading(true);
+    try {
       const fd = new FormData();
       fd.append("avatar", file);
       const res = await usersApi.updateAvatar(fd);
       if (user) setUser({ ...user, avatar: res.avatar });
       toast.success("Avatar updated");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to upload avatar");
+    } finally {
+      setIsUploading(false);
+      e.target.value = "";
     }
-    e.target.value = "";
   };
 
   if (loading) return <Skeleton className="h-96 w-full" />;
@@ -89,13 +91,13 @@ export default function ProfileSettingsPage() {
         <CardHeader><CardTitle>Profile Photo</CardTitle></CardHeader>
         <CardContent className="flex items-center gap-6">
           <div className="relative h-24 w-24 rounded-full overflow-hidden bg-muted shrink-0">
-            {user?.avatar && <Image src={resolveAvatarUrl(user.avatar)} alt="Avatar" fill className="object-cover" />}
+            {user?.avatar && <img src={resolveAvatarUrl(user.avatar)} alt="Avatar" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />}
           </div>
           <div className="space-y-2">
             <input type="file" accept="image/*" className="hidden" id="avatar-input" onChange={handleAvatarChange} />
             <label htmlFor="avatar-input">
               <Button asChild variant="outline" size="sm" disabled={isUploading}>
-                <span>{isUploading ? `Uploading ${progress}%…` : "Change avatar"}</span>
+                <span>{isUploading ? "Uploading…" : "Change avatar"}</span>
               </Button>
             </label>
             <p className="text-xs text-muted-foreground">JPG, PNG or WebP. Max 5MB.</p>

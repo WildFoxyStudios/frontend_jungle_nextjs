@@ -1,66 +1,95 @@
-﻿"use client";
+"use client";
 
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { useState, useEffect } from "react";
 import { usersApi } from "@jungle/api-client";
 import type { Address } from "@jungle/api-client";
-import { Card, CardContent, CardHeader, CardTitle, Button, Input, Label, Skeleton, Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, Badge } from "@jungle/ui";
+import {
+  Card, CardContent, CardHeader, CardTitle, Button, Input, Label, Badge,
+  ConfirmDialog,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+} from "@jungle/ui";
+import { Plus, Pencil, Trash2, MapPin, Star } from "lucide-react";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2 } from "lucide-react";
 
-const addressSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  line1: z.string().min(1, "Address line 1 is required"),
-  line2: z.string().optional(),
-  city: z.string().min(1, "City is required"),
-  state: z.string().min(1, "State is required"),
-  country: z.string().min(1, "Country is required"),
-  postal_code: z.string().min(1, "Postal code is required"),
-  phone: z.string().min(1, "Phone is required"),
-});
-
-type AddressForm = z.infer<typeof addressSchema>;
+const EMPTY_FORM = {
+  name: "",
+  line1: "",
+  line2: "",
+  city: "",
+  state: "",
+  country: "",
+  postal_code: "",
+  phone: "",
+  is_default: false,
+};
 
 export default function AddressesPage() {
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [loading, setLoading] = useState(true);
-  const [open, setOpen] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Address | null>(null);
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [saving, setSaving] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<Address | null>(null);
 
-  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<AddressForm>({
-    resolver: zodResolver(addressSchema),
-  });
-
-  useEffect(() => {
+  const load = () => {
+    setLoading(true);
     usersApi.getAddresses()
       .then(setAddresses)
-      .catch(() => {})
+      .catch(() => toast.error("Failed to load addresses"))
       .finally(() => setLoading(false));
-  }, []);
+  };
 
-  const openCreate = () => { setEditing(null); reset({}); setOpen(true); };
-  const openEdit = (addr: Address) => { setEditing(addr); reset(addr); setOpen(true); };
+  useEffect(() => { load(); }, []);
 
-  const onSubmit = async (data: AddressForm) => {
+  const openCreate = () => {
+    setEditing(null);
+    setForm(EMPTY_FORM);
+    setDialogOpen(true);
+  };
+
+  const openEdit = (addr: Address) => {
+    setEditing(addr);
+    setForm({
+      name: addr.name,
+      line1: addr.line1,
+      line2: addr.line2 ?? "",
+      city: addr.city,
+      state: addr.state,
+      country: addr.country,
+      postal_code: addr.postal_code,
+      phone: addr.phone,
+      is_default: addr.is_default,
+    });
+    setDialogOpen(true);
+  };
+
+  const handleSave = async () => {
+    if (!form.name || !form.line1 || !form.city || !form.country) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+    setSaving(true);
     try {
       if (editing) {
-        const updated = await usersApi.updateAddress(editing.id, data);
+        const updated = await usersApi.updateAddress(editing.id, form);
         setAddresses((prev) => prev.map((a) => a.id === editing.id ? updated : a));
-        toast.success("Address updated");
       } else {
-        const created = await usersApi.createAddress(data);
+        const created = await usersApi.createAddress(form);
         setAddresses((prev) => [...prev, created]);
-        toast.success("Address added");
       }
-      setOpen(false);
+      toast.success(editing ? "Address updated" : "Address added");
+      setDialogOpen(false);
     } catch {
       toast.error("Failed to save address");
+    } finally {
+      setSaving(false);
     }
   };
 
-  const handleDelete = async (id: number) => {
+  const confirmDelete = async () => {
+    if (!pendingDelete) return;
+    const id = pendingDelete.id;
     try {
       await usersApi.deleteAddress(id);
       setAddresses((prev) => prev.filter((a) => a.id !== id));
@@ -70,57 +99,129 @@ export default function AddressesPage() {
     }
   };
 
-  if (loading) return <Skeleton className="h-48 w-full" />;
+  const handleSetDefault = async (addr: Address) => {
+    try {
+      const updated = await usersApi.updateAddress(addr.id, { is_default: true });
+      setAddresses((prev) => prev.map((a) => ({
+        ...a,
+        is_default: a.id === addr.id ? updated.is_default : false,
+      })));
+      toast.success("Default address updated");
+    } catch {
+      toast.error("Failed to update default");
+    }
+  };
+
+  const field = (key: keyof typeof form) => (
+    <div key={key} className="space-y-1">
+      <Label htmlFor={key} className="capitalize text-sm">
+        {key.replace("_", " ")}{["name", "line1", "city", "country"].includes(key) && " *"}
+      </Label>
+      {key === "is_default" ? null : (
+        <Input
+          id={key}
+          value={form[key] as string}
+          onChange={(e) => setForm((p) => ({ ...p, [key]: e.target.value }))}
+          placeholder={key === "line1" ? "Street address" : undefined}
+        />
+      )}
+    </div>
+  );
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">Shipping Addresses</h2>
-        <Button size="sm" onClick={openCreate}><Plus className="h-4 w-4 mr-1" /> Add Address</Button>
+        <div>
+          <h1 className="text-xl font-bold">Shipping Addresses</h1>
+          <p className="text-sm text-muted-foreground">Manage your saved addresses for marketplace orders</p>
+        </div>
+        <Button onClick={openCreate} size="sm">
+          <Plus className="h-4 w-4 mr-1" /> Add Address
+        </Button>
       </div>
 
-      {addresses.length === 0 && (
-        <Card><CardContent className="py-8 text-center text-muted-foreground text-sm">No addresses saved yet.</CardContent></Card>
-      )}
-
-      {addresses.map((addr) => (
-        <Card key={addr.id}>
-          <CardContent className="p-4 flex items-start justify-between gap-4">
-            <div className="space-y-0.5">
-              <div className="flex items-center gap-2">
-                <p className="font-medium text-sm">{addr.name}</p>
-                {addr.is_default && <Badge variant="secondary" className="text-xs">Default</Badge>}
-              </div>
-              <p className="text-sm text-muted-foreground">{addr.line1}{addr.line2 ? `, ${addr.line2}` : ""}</p>
-              <p className="text-sm text-muted-foreground">{addr.city}, {addr.state} {addr.postal_code}</p>
-              <p className="text-sm text-muted-foreground">{addr.country} · {addr.phone}</p>
-            </div>
-            <div className="flex gap-2 shrink-0">
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(addr)}><Pencil className="h-3.5 w-3.5" /></Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(addr.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
-            </div>
+      {loading ? (
+        <div className="text-sm text-muted-foreground">Loading…</div>
+      ) : addresses.length === 0 ? (
+        <Card>
+          <CardContent className="py-12 text-center">
+            <MapPin className="h-10 w-10 mx-auto mb-3 text-muted-foreground/40" />
+            <p className="text-muted-foreground">No saved addresses yet.</p>
+            <Button variant="outline" size="sm" className="mt-4" onClick={openCreate}>
+              <Plus className="h-4 w-4 mr-1" /> Add your first address
+            </Button>
           </CardContent>
         </Card>
-      ))}
+      ) : (
+        <div className="grid gap-3">
+          {addresses.map((addr) => (
+            <Card key={addr.id} className={addr.is_default ? "border-primary/50" : ""}>
+              <CardHeader className="pb-2 flex flex-row items-start justify-between gap-2">
+                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                  {addr.name}
+                  {addr.is_default && <Badge variant="secondary" className="text-[10px]">Default</Badge>}
+                </CardTitle>
+                <div className="flex gap-1">
+                  {!addr.is_default && (
+                    <Button variant="ghost" size="icon" className="h-7 w-7" title="Set as default" onClick={() => handleSetDefault(addr)}>
+                      <Star className="h-3.5 w-3.5" />
+                    </Button>
+                  )}
+                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(addr)}>
+                    <Pencil className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => setPendingDelete(addr)}>
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="text-sm text-muted-foreground space-y-0.5">
+                <p>{addr.line1}{addr.line2 ? `, ${addr.line2}` : ""}</p>
+                <p>{addr.city}, {addr.state} {addr.postal_code}</p>
+                <p>{addr.country}</p>
+                {addr.phone && <p>{addr.phone}</p>}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
 
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>{editing ? "Edit Address" : "New Address"}</DialogTitle></DialogHeader>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 py-2">
-            {(["name", "line1", "line2", "city", "state", "country", "postal_code", "phone"] as const).map((field) => (
-              <div key={field} className="space-y-1">
-                <Label className="capitalize">{field.replace("_", " ")}</Label>
-                <Input {...register(field)} />
-                {errors[field] && <p className="text-xs text-destructive">{errors[field]?.message}</p>}
-              </div>
-            ))}
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-              <Button type="submit" disabled={isSubmitting}>{editing ? "Save" : "Add"}</Button>
-            </DialogFooter>
-          </form>
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{editing ? "Edit Address" : "Add Address"}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            {(["name", "line1", "line2", "city", "state", "country", "postal_code", "phone"] as (keyof typeof form)[]).map(field)}
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="is_default"
+                checked={form.is_default}
+                onChange={(e) => setForm((p) => ({ ...p, is_default: e.target.checked }))}
+                className="rounded"
+              />
+              <Label htmlFor="is_default" className="text-sm cursor-pointer">Set as default address</Label>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleSave} disabled={saving}>
+              {saving ? "Saving…" : editing ? "Update" : "Add Address"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        onOpenChange={(o) => { if (!o) setPendingDelete(null); }}
+        title="Delete this address?"
+        description={pendingDelete ? `"${pendingDelete.name}" will be removed from your saved addresses.` : undefined}
+        variant="destructive"
+        confirmText="Delete"
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 }

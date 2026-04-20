@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { authApi, api } from "@jungle/api-client";
 import { Button, Card, CardContent, Input, Label } from "@jungle/ui";
@@ -8,7 +8,7 @@ import { toast } from "sonner";
 
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
 
-export default function AdminLoginPage() {
+function AdminLoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
@@ -65,5 +65,19 @@ export default function AdminLoginPage() {
         </form>
       </CardContent>
     </Card>
+  );
+}
+
+export default function AdminLoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <Card>
+          <CardContent className="p-6 text-center text-sm text-muted-foreground">Loading…</CardContent>
+        </Card>
+      }
+    >
+      <AdminLoginForm />
+    </Suspense>
   );
 }

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import type { MediaItem } from "@jungle/api-client";
 import { Button } from "@jungle/ui";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
@@ -25,7 +24,7 @@ export function Gallery({ items }: GalleryProps) {
             className="relative aspect-square bg-muted rounded overflow-hidden"
           >
             {item.type === "image" ? (
-              <Image src={item.url} alt="" fill className="object-cover" />
+              <img src={item.url} alt="" className="absolute inset-0 w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
             ) : (
               <video src={item.url} className="w-full h-full object-cover" />
             )}
@@ -41,12 +40,11 @@ export function Gallery({ items }: GalleryProps) {
       {lightboxIndex !== null && (
         <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center" onClick={() => setLightboxIndex(null)}>
           <div className="relative max-w-4xl max-h-screen p-4" onClick={(e) => e.stopPropagation()}>
-            <Image
+            <img
               src={items[lightboxIndex].url}
               alt=""
-              width={1200}
-              height={800}
               className="max-h-[80vh] w-auto object-contain"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
             />
             <div className="absolute top-2 right-2 flex gap-2">
               {lightboxIndex > 0 && <Button size="icon" variant="secondary" className="h-8 w-8" onClick={() => setLightboxIndex(lightboxIndex - 1)}><ChevronLeft className="h-4 w-4" /></Button>}

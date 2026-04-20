@@ -6,6 +6,7 @@ import { groupsApi } from "@jungle/api-client";
 import type { Group } from "@jungle/api-client";
 import { Button, Card, CardContent, Avatar, AvatarFallback, AvatarImage, Skeleton } from "@jungle/ui";
 import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 
 export default function GroupsPage() {
   const [groups, setGroups] = useState<Group[]>([]);
@@ -13,7 +14,10 @@ export default function GroupsPage() {
   const t = useTranslations("groups");
 
   useEffect(() => {
-    groupsApi.getGroups().then((r) => setGroups(r.data)).catch(() => {}).finally(() => setLoading(false));
+    groupsApi.getGroups()
+      .then((r) => setGroups(r.data))
+      .catch((err) => toast.error(err instanceof Error ? err.message : "Failed to load groups"))
+      .finally(() => setLoading(false));
   }, []);
 
   return (

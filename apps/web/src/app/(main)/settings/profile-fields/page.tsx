@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { usersApi } from "@jungle/api-client";
@@ -20,7 +20,7 @@ export default function ProfileFieldsPage() {
         data.forEach((f) => { initial[String(f.id)] = f.value ?? ""; });
         setValues(initial);
       })
-      .catch(() => {})
+      .catch(() => { /* non-critical: failure is silent */ })
       .finally(() => setLoading(false));
   }, []);
 
@@ -63,7 +63,7 @@ export default function ProfileFieldsPage() {
           </div>
         ))}
         <Button onClick={handleSave} disabled={saving} className="w-full">
-          {saving ? "Saving…" : "Save Fields"}
+          {saving ? "Saving�" : "Save Fields"}
         </Button>
       </CardContent>
     </Card>

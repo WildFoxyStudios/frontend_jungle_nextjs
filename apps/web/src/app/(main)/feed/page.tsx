@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useFeed, useIntersection, useRealtimeStore } from "@jungle/hooks";
 import type { Post } from "@jungle/api-client";
 import { Skeleton } from "@jungle/ui";
@@ -14,6 +14,7 @@ export default function FeedPage() {
   const [sentinelRef, isIntersecting] = useIntersection({ threshold: 0, rootMargin: "200px" });
   const { on } = useRealtimeStore();
   const [newPostsAvailable, setNewPostsAvailable] = useState(false);
+  const [localPosts, setLocalPosts] = useState<Post[]>([]);
 
   useEffect(() => {
     if (isIntersecting && hasNextPage && !isFetchingNextPage) {
@@ -26,10 +27,28 @@ export default function FeedPage() {
     return unsubscribe;
   }, [on]);
 
-  const posts = data?.pages.flatMap((p: { data: import("@jungle/api-client").Post[] }) => p.data) ?? [];
+  const feedPosts = data?.pages.flatMap((p: { data: Post[] }) => p.data) ?? [];
+
+  const seen = new Set<number>();
+  const uniquePosts: Post[] = [];
+  for (const p of [...localPosts, ...feedPosts]) {
+    if (!seen.has(p.id)) {
+      seen.add(p.id);
+      uniquePosts.push(p);
+    }
+  }
+
+  const handleNewPost = useCallback((post: Post) => {
+    setLocalPosts((prev) => [post, ...prev]);
+  }, []);
+
+  const handleDeletePost = useCallback((postId: number) => {
+    setLocalPosts((prev) => prev.filter((p) => p.id !== postId));
+  }, []);
 
   const handleRefresh = () => {
     setNewPostsAvailable(false);
+    setLocalPosts([]);
     refetch();
   };
 
@@ -39,10 +58,10 @@ export default function FeedPage() {
 
       {newPostsAvailable && <NewPostsBanner onRefresh={handleRefresh} />}
 
-      <PostComposer />
+      <PostComposer onSuccess={handleNewPost} />
 
-      {posts.map((post: Post) => (
-        <PostCard key={post.id} post={post} />
+      {uniquePosts.map((post: Post) => (
+        <PostCard key={post.id} post={post} onDelete={handleDeletePost} />
       ))}
 
       {isFetchingNextPage && (

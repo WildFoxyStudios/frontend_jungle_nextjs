@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -10,7 +10,7 @@ export default function MyBlogsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    blogsApi.getMyBlogs().then((r) => setBlogs(r.data)).catch(() => {}).finally(() => setLoading(false));
+    blogsApi.getMyBlogs().then((r) => setBlogs(r.data)).catch(() => { /* non-critical: failure is silent */ }).finally(() => setLoading(false));
   }, []);
 
   return (

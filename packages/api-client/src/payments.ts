@@ -1,12 +1,31 @@
-﻿import { api } from "./client";
+import { api } from "./client";
 import type { Wallet, Transaction, ProPlan, CreatorTier, WithdrawalRequest, PaginatedResponse } from "./types/index";
 
 export const paymentsApi = {
   getWallet: () => api.get<Wallet>("/v1/payments/wallet/balance"),
+  /**
+   * Generic payment-session creator. Used by order checkout and any other
+   * one-off payment that is NOT a wallet top-up. Hits `/v1/payments/create`
+   * on the backend; the returned `redirect_url` is where the user is sent
+   * to complete the payment on the gateway.
+   */
+  createPayment: (data: {
+    provider: string;
+    amount: number;
+    currency?: string;
+    payment_type: string;
+    description?: string;
+    return_url: string;
+    cancel_url: string;
+  }) =>
+    api.post<{ transaction_id: number; redirect_url?: string; session_id: string }>(
+      "/v1/payments/create",
+      data,
+    ),
   addFunds: (amount: number, gateway: string) =>
     api.post<{ redirect_url?: string; transaction_id: string }>("/v1/payments/wallet/add", { amount, gateway }),
-  transferFunds: (userId: number, amount: number) =>
-    api.post<void>("/v1/payments/wallet/transfer", { user_id: userId, amount }),
+  transferFunds: (data: { userId?: number; username?: string; amount: number }) =>
+    api.post<void>("/v1/payments/wallet/transfer", { user_id: data.userId, username: data.username, amount: data.amount }),
   requestWithdrawal: (data: { amount: number; method: string; account_details: string }) =>
     api.post<WithdrawalRequest>("/v1/payments/withdraw", data),
   getTransactions: (cursor?: string, filters?: { type?: string; from?: string; to?: string }) =>

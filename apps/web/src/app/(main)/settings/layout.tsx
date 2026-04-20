@@ -1,45 +1,57 @@
+"use client";
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 const SETTINGS_NAV = [
-  { href: "/settings", label: "General" },
-  { href: "/settings/privacy", label: "Privacy" },
-  { href: "/settings/security", label: "Security" },
-  { href: "/settings/sessions", label: "Sessions" },
-  { href: "/settings/notifications", label: "Notifications" },
-  { href: "/settings/design", label: "Design" },
-  { href: "/settings/social-links", label: "Social Links" },
-  { href: "/settings/blocked", label: "Blocked Users" },
-  { href: "/settings/profile-fields", label: "Profile Fields" },
-  { href: "/settings/experience", label: "Experience" },
-  { href: "/settings/certifications", label: "Certifications" },
-  { href: "/settings/projects", label: "Projects" },
-  { href: "/settings/monetization", label: "Monetization" },
-  { href: "/settings/points", label: "Points" },
-  { href: "/settings/affiliates", label: "Affiliates" },
-  { href: "/settings/referrals", label: "Referrals" },
-  { href: "/settings/invitations", label: "Invitations" },
-  { href: "/settings/addresses", label: "Addresses" },
-  { href: "/settings/payments", label: "Payments" },
-  { href: "/settings/transactions", label: "Transactions" },
-  { href: "/settings/verification", label: "Verification" },
-  { href: "/settings/delete-account", label: "Delete Account" },
+  { href: "/settings", key: "general" },
+  { href: "/settings/profile", key: "profile" },
+  { href: "/settings/privacy", key: "privacy" },
+  { href: "/settings/security", key: "security" },
+  { href: "/settings/sessions", key: "sessions" },
+  { href: "/settings/notifications", key: "notifications" },
+  { href: "/settings/design", key: "design" },
+  { href: "/settings/social-links", key: "socialLinks" },
+  { href: "/settings/blocked", key: "blocked" },
+  { href: "/settings/profile-fields", key: "profileFields" },
+  { href: "/settings/experience", key: "experience" },
+  { href: "/settings/certifications", key: "certifications" },
+  { href: "/settings/projects", key: "projects" },
+  { href: "/settings/monetization", key: "monetization" },
+  { href: "/settings/points", key: "points" },
+  { href: "/settings/affiliates", key: "affiliates" },
+  { href: "/settings/referrals", key: "referrals" },
+  { href: "/settings/invitations", key: "invitations" },
+  { href: "/settings/addresses", key: "addresses" },
+  { href: "/settings/payments", key: "payments" },
+  { href: "/settings/transactions", key: "transactions" },
+  { href: "/settings/verification", key: "verification" },
+  { href: "/settings/open-to-work", key: "openToWork" },
+  { href: "/settings/delete-account", key: "deleteAccount" },
 ];
 
 export default function SettingsLayout({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+  const t = useTranslations("settings_nav");
+
   return (
     <div className="max-w-5xl mx-auto px-4 py-4 flex gap-6">
       <aside className="hidden md:block w-56 shrink-0">
         <nav className="space-y-1">
-          {SETTINGS_NAV.map(({ href, label }) => (
-            <Link
-              key={href}
-              href={href}
-              className="block px-3 py-2 rounded-lg text-sm hover:bg-muted transition-colors"
-            >
-              {label}
-            </Link>
-          ))}
+          {SETTINGS_NAV.map(({ href, key }) => {
+            const isActive = href === "/settings" ? pathname === href : pathname.startsWith(href);
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={`block px-3 py-2 rounded-lg text-sm transition-colors ${isActive ? "bg-primary text-primary-foreground" : "hover:bg-muted"
+                  }`}
+              >
+                {t(key)}
+              </Link>
+            );
+          })}
         </nav>
       </aside>
       <main className="flex-1 min-w-0">{children}</main>

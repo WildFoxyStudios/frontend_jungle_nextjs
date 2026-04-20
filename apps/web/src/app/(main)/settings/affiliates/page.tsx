@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { usersApi } from "@jungle/api-client";
@@ -19,7 +19,7 @@ export default function AffiliatesPage() {
   useEffect(() => {
     usersApi.getReferrals()
       .then(setData)
-      .catch(() => {})
+      .catch(() => { /* non-critical: failure is silent */ })
       .finally(() => setLoading(false));
   }, []);
 

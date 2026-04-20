@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import { contentApi } from "@jungle/api-client";
 import type { Game } from "@jungle/api-client";
 import { Card, CardContent, CardHeader, CardTitle, Skeleton, Badge } from "@jungle/ui";
-import Image from "next/image";
 import { Gamepad2, Users, X } from "lucide-react";
+import { toast } from "sonner";
 
 export default function GamesPage() {
   const [games, setGames] = useState<Game[]>([]);
@@ -14,15 +14,19 @@ export default function GamesPage() {
 
   useEffect(() => {
     contentApi.getGames()
-      .then(setGames)
-      .catch(() => {})
+      .then((r: unknown) => {
+        const arr = Array.isArray(r) ? r : (r as Record<string, unknown>)?.data;
+        setGames(Array.isArray(arr) ? arr : []);
+      })
+      .catch((err) => toast.error(err instanceof Error ? err.message : "Failed to load games"))
       .finally(() => setLoading(false));
   }, []);
 
   const handlePlay = (game: Game) => {
     setActiveGame(game);
     // Record the play
-    fetch(`/api/games/${game.id}/play`, { method: "POST" }).catch(() => {});
+    // Play count is best-effort telemetry; ignore errors.
+    fetch(`/api/games/${game.id}/play`, { method: "POST" }).catch(() => { /* silent by design */ });
   };
 
   if (activeGame) {
@@ -77,12 +81,7 @@ export default function GamesPage() {
             >
               <div className="relative aspect-video bg-muted">
                 {game.thumbnail ? (
-                  <Image
-                    src={game.thumbnail}
-                    alt={game.name}
-                    fill
-                    className="object-cover"
-                  />
+                  <img src={game.thumbnail} alt={game.name} className="absolute inset-0 w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
                 ) : (
                   <div className="absolute inset-0 flex items-center justify-center">
                     <Gamepad2 className="h-10 w-10 text-muted-foreground" />

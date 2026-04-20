@@ -13,21 +13,23 @@ export function StoryRing() {
   useEffect(() => {
     storiesApi.getStories()
       .then((res) => setGroups(res))
-      .catch(() => {});
+      .catch(() => { /* non-critical: failure is silent */ });
   }, []);
 
-  if (groups.length === 0) return null;
+  const validGroups = groups.filter((g) => g.user);
 
-  const allStories = groups.flatMap((g) => g.stories);
+  if (validGroups.length === 0) return null;
+
+  const allStories = validGroups.flatMap((g) => g.stories);
   const viewingStoryIndex = viewingGroupIndex !== null
-    ? groups.slice(0, viewingGroupIndex).reduce((sum, g) => sum + g.stories.length, 0)
+    ? validGroups.slice(0, viewingGroupIndex).reduce((sum, g) => sum + g.stories.length, 0)
     : null;
 
   return (
     <>
       <ScrollArea className="w-full">
         <div className="flex gap-3 p-4">
-          {groups.map((group, i) => (
+          {validGroups.map((group, i) => (
             <button
               key={group.user.id}
               onClick={() => setViewingGroupIndex(i)}
@@ -36,7 +38,7 @@ export function StoryRing() {
               <div className={`p-0.5 rounded-full ${group.has_unseen ? "bg-gradient-to-tr from-yellow-400 to-pink-500" : "bg-muted"}`}>
                 <Avatar className="h-14 w-14 border-2 border-background">
                   <AvatarImage src={group.user.avatar} />
-                  <AvatarFallback>{group.user.first_name[0]}</AvatarFallback>
+                  <AvatarFallback>{group.user.first_name?.[0] ?? "?"}</AvatarFallback>
                 </Avatar>
               </div>
               <span className="text-xs text-muted-foreground max-w-[3.5rem] truncate">

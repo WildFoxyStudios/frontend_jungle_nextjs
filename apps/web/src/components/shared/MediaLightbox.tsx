@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import Image from "next/image";
-import { X, ChevronLeft, ChevronRight, Download } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, Download, Share2, ZoomIn, ZoomOut } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@jungle/ui";
 
 export interface LightboxMedia {
@@ -20,6 +20,7 @@ interface MediaLightboxProps {
 
 export function MediaLightbox({ media, initialIndex = 0, open, onClose }: MediaLightboxProps) {
   const [index, setIndex] = useState(initialIndex);
+  const [zoomed, setZoomed] = useState(false);
 
   useEffect(() => {
     if (open) setIndex(initialIndex);
@@ -64,6 +65,31 @@ export function MediaLightbox({ media, initialIndex = 0, open, onClose }: MediaL
       aria-label="Media viewer"
     >
       <div className="absolute top-4 right-4 z-10 flex gap-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-white hover:bg-white/20"
+          onClick={(e) => {
+            e.stopPropagation();
+            setZoomed((z) => !z);
+          }}
+          aria-label="Zoom"
+        >
+          {zoomed ? <ZoomOut className="h-5 w-5" /> : <ZoomIn className="h-5 w-5" />}
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-white hover:bg-white/20"
+          onClick={(e) => {
+            e.stopPropagation();
+            navigator.clipboard.writeText(current.url);
+            toast.success("Link copied");
+          }}
+          aria-label="Share"
+        >
+          <Share2 className="h-5 w-5" />
+        </Button>
         <Button
           variant="ghost"
           size="icon"
@@ -127,13 +153,11 @@ export function MediaLightbox({ media, initialIndex = 0, open, onClose }: MediaL
         onClick={(e) => e.stopPropagation()}
       >
         {current.type === "image" ? (
-          <Image
+          <img
             src={current.url}
             alt={current.alt ?? ""}
-            width={1200}
-            height={800}
-            className="max-w-[90vw] max-h-[90vh] object-contain"
-            priority
+            className={`object-contain transition-transform ${zoomed ? "max-w-none max-h-none scale-150 cursor-zoom-out" : "max-w-[90vw] max-h-[90vh] cursor-zoom-in"}`}
+            onClick={(e) => { e.stopPropagation(); setZoomed((z) => !z); }}
           />
         ) : (
           <video

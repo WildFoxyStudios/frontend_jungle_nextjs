@@ -1,5 +1,6 @@
 ﻿import { api } from "./client";
 import type { ForumSection, Forum, ForumThread, ForumReply, Movie, Game, PaginatedResponse, UserAd } from "./types/index";
+import type { PublicUser } from "./types/user";
 
 export interface OAuthApp {
   id: number;
@@ -34,10 +35,22 @@ export const contentApi = {
     api.put<ForumReply>(`/v1/forums/replies/${id}`, data),
   deleteForumReply: (id: number) => api.delete<void>(`/v1/forums/replies/${id}`),
   shareForumThread: (id: number) => api.post<void>(`/v1/forums/threads/${id}/share`),
+  searchForumThreads: (q: string, cursor?: string) =>
+    api.get<PaginatedResponse<ForumThread>>("/v1/forums/search", { q, cursor }),
+  getForumTopPosters: () =>
+    api.get<{ user: PublicUser; thread_count: number; reply_count: number }[]>("/v1/forums/members"),
+  getMyForumThreads: (cursor?: string) =>
+    api.get<PaginatedResponse<ForumThread>>("/v1/forums/my/threads", { cursor }),
+  getMyForumReplies: (cursor?: string) =>
+    api.get<PaginatedResponse<ForumReply>>("/v1/forums/my/replies", { cursor }),
 
   // Movies
   getMovies: (cursor?: string, genre?: string) =>
     api.get<PaginatedResponse<Movie>>("/v1/movies", { cursor, genre }),
+  getMoviesByGenre: (slug: string, cursor?: string) =>
+    api.get<PaginatedResponse<Movie>>("/v1/movies", { cursor, genre: slug }),
+  getMoviesByCountry: (code: string, cursor?: string) =>
+    api.get<PaginatedResponse<Movie>>("/v1/movies", { cursor, country: code }),
   getMovie: (id: number) => api.get<Movie>(`/v1/movies/${id}`),
   createMovie: (data: Partial<Movie> & { title: string }) =>
     api.post<Movie>("/v1/movies", data),
@@ -104,4 +117,35 @@ export const contentApi = {
     api.get<{ id: number; slug: string; title: string; content: string; page_type: string }[]>("/v1/pages/custom"),
   getCustomPage: (slug: string) =>
     api.get<{ id: number; slug: string; title: string; content: string; page_type: string }>(`/v1/pages/custom/${slug}`),
+
+  // Contact form
+  contactUs: (data: { name: string; email: string; message: string }) =>
+    api.post<void>("/v1/contact", data),
+
+  // AI Features
+  aiGeneratePost: (params: { prompt?: string; topic?: string; tone?: string; maxTokens?: number }) =>
+    api.post<{ content: string; provider: string; model: string; tokens_used: number }>(
+      "/v1/ai/generate-post",
+      {
+        prompt: params.prompt,
+        topic: params.topic,
+        tone: params.tone,
+        max_tokens: params.maxTokens,
+      },
+    ),
+  aiGenerateBlog: (params: { topic: string; keywords?: string[]; tone?: string; length?: "short" | "medium" | "long" }) =>
+    api.post<{ title: string; content: string; provider: string; model: string; tokens_used: number }>(
+      "/v1/ai/generate-blog",
+      params,
+    ),
+  aiGenerateImages: (params: { prompt: string; n?: number; size?: string; quality?: "standard" | "hd"; style?: "vivid" | "natural" }) =>
+    api.post<{ urls: string[]; provider: string; model: string }>("/v1/ai/generate-images", params),
+  aiGetWordBalance: () =>
+    api.get<{ remaining: number; limit: number; plan: string; reset_at: string }>(
+      "/v1/ai/balance/words",
+    ),
+  aiGetImageBalance: () =>
+    api.get<{ remaining: number; limit: number; plan: string; reset_at: string }>(
+      "/v1/ai/balance/images",
+    ),
 };

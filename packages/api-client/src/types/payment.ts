@@ -25,7 +25,7 @@ export type PaymentGateway =
 export interface Transaction {
   id: number;
   user: PublicUser;
-  type: "deposit" | "withdrawal" | "purchase" | "subscription" | "transfer" | "refund";
+  type: "deposit" | "withdrawal" | "purchase" | "subscription" | "transfer" | "refund" | "topup";
   amount: number;
   currency: string;
   gateway: PaymentGateway;
@@ -47,8 +47,15 @@ export interface ProPlan {
   price: number;
   currency: string;
   duration_days: number;
+  time?: string;
   features: string[];
   is_popular: boolean;
+  featured_member?: boolean;
+  profile_visitors?: boolean;
+  last_seen?: boolean;
+  verified_badge?: boolean;
+  posts_promotion?: number;
+  pages_promotion?: number;
 }
 
 export interface CreatorTier {

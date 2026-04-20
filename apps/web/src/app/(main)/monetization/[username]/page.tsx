@@ -19,7 +19,7 @@ export default function MonetizationPage({ params }: Props) {
     usersApi.getUser(username)
       .then((user) => paymentsApi.getCreatorTiers(user.id))
       .then(setTiers)
-      .catch(() => {})
+      .catch((err) => toast.error(err instanceof Error ? err.message : "Failed to load creator tiers"))
       .finally(() => setLoading(false));
   }, [username]);
 

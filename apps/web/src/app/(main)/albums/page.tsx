@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -13,7 +13,7 @@ export default function AlbumsPage() {
 
   useEffect(() => {
     if (!user) return;
-    mediaApi.getAlbums(user.username).then((r) => setAlbums(r.data)).catch(() => {}).finally(() => setLoading(false));
+    mediaApi.getAlbums(user.username).then((r) => setAlbums(r.data)).catch(() => { /* non-critical: failure is silent */ }).finally(() => setLoading(false));
   }, [user]);
 
   return (

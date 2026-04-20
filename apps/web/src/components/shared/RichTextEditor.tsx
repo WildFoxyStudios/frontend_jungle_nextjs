@@ -8,10 +8,13 @@ import Placeholder from "@tiptap/extension-placeholder";
 import {
   Bold, Italic, Strikethrough, Code, Heading1, Heading2, Heading3,
   List, ListOrdered, Quote, Minus, Undo, Redo, Link as LinkIcon,
-  ImagePlus, RemoveFormatting,
+  ImagePlus, RemoveFormatting, Check, X,
 } from "lucide-react";
-import { Button } from "@jungle/ui";
-import { useCallback } from "react";
+import {
+  Button, Input, Label,
+  Popover, PopoverContent, PopoverTrigger,
+} from "@jungle/ui";
+import { useCallback, useState } from "react";
 
 interface RichTextEditorProps {
   content?: string;
@@ -50,24 +53,107 @@ function ToolbarButton({
   );
 }
 
-function Toolbar({ editor }: { editor: Editor }) {
-  const setLink = useCallback(() => {
-    const previousUrl = editor.getAttributes("link").href as string | undefined;
-    const url = window.prompt("URL", previousUrl);
-    if (url === null) return;
-    if (url === "") {
-      editor.chain().focus().extendMarkRange("link").unsetLink().run();
-      return;
-    }
-    editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
-  }, [editor]);
+function UrlPopover({
+  icon,
+  title,
+  placeholder,
+  initialValue,
+  allowEmpty,
+  active,
+  onSubmit,
+  inputType = "url",
+}: {
+  icon: React.ReactNode;
+  title: string;
+  placeholder: string;
+  initialValue?: string;
+  allowEmpty?: boolean;
+  active?: boolean;
+  onSubmit: (value: string) => void;
+  inputType?: "url" | "text";
+}) {
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState(initialValue ?? "");
 
-  const addImage = useCallback(() => {
-    const url = window.prompt("Image URL");
-    if (url) {
-      editor.chain().focus().setImage({ src: url }).run();
-    }
-  }, [editor]);
+  const submit = () => {
+    if (!allowEmpty && value.trim() === "") return;
+    onSubmit(value.trim());
+    setOpen(false);
+  };
+
+  return (
+    <Popover
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next);
+        if (next) setValue(initialValue ?? "");
+      }}
+    >
+      <PopoverTrigger asChild>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className={`h-8 w-8 p-0 ${active ? "bg-muted" : ""}`}
+          title={title}
+        >
+          {icon}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-72 p-3 space-y-2">
+        <Label className="text-xs font-medium">{title}</Label>
+        <Input
+          autoFocus
+          type={inputType}
+          placeholder={placeholder}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") { e.preventDefault(); submit(); }
+            if (e.key === "Escape") setOpen(false);
+          }}
+        />
+        <div className="flex justify-end gap-1">
+          {allowEmpty && initialValue && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => { onSubmit(""); setOpen(false); }}
+            >
+              <X className="h-3 w-3 mr-1" /> Remove
+            </Button>
+          )}
+          <Button type="button" size="sm" onClick={submit} disabled={!allowEmpty && value.trim() === ""}>
+            <Check className="h-3 w-3 mr-1" /> Apply
+          </Button>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function Toolbar({ editor }: { editor: Editor }) {
+  const setLink = useCallback(
+    (url: string) => {
+      if (url === "") {
+        editor.chain().focus().extendMarkRange("link").unsetLink().run();
+        return;
+      }
+      editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
+    },
+    [editor],
+  );
+
+  const addImage = useCallback(
+    (url: string) => {
+      if (url) editor.chain().focus().setImage({ src: url }).run();
+    },
+    [editor],
+  );
+
+  const previousLinkUrl =
+    (editor.getAttributes("link").href as string | undefined) ?? "";
 
   return (
     <div className="flex flex-wrap gap-0.5 border-b p-1">
@@ -156,12 +242,21 @@ function Toolbar({ editor }: { editor: Editor }) {
 
       <div className="w-px bg-border mx-1" />
 
-      <ToolbarButton onClick={setLink} active={editor.isActive("link")} title="Link">
-        <LinkIcon className="h-4 w-4" />
-      </ToolbarButton>
-      <ToolbarButton onClick={addImage} title="Image">
-        <ImagePlus className="h-4 w-4" />
-      </ToolbarButton>
+      <UrlPopover
+        icon={<LinkIcon className="h-4 w-4" />}
+        title="Link URL"
+        placeholder="https://example.com"
+        initialValue={previousLinkUrl}
+        allowEmpty
+        active={editor.isActive("link")}
+        onSubmit={setLink}
+      />
+      <UrlPopover
+        icon={<ImagePlus className="h-4 w-4" />}
+        title="Image URL"
+        placeholder="https://example.com/image.jpg"
+        onSubmit={addImage}
+      />
 
       <div className="w-px bg-border mx-1" />
 

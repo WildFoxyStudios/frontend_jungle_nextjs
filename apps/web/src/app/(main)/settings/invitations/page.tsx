@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { usersApi } from "@jungle/api-client";
@@ -15,7 +15,7 @@ export default function InvitationsPage() {
   useEffect(() => {
     usersApi.getInviteCode()
       .then(setInviteData)
-      .catch(() => {})
+      .catch(() => { /* non-critical: failure is silent */ })
       .finally(() => setLoading(false));
   }, []);
 

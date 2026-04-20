@@ -22,8 +22,9 @@
     "turbo": "^2.9.6",
     "typescript": "^5.9.3"
   },
-  "packageManager": "pnpm@9.15.2",
+  "packageManager": "pnpm@10.33.0",
   "dependencies": {
+    "date-fns": "^4.1.0",
     "skills": "^1.5.0"
   }
 }

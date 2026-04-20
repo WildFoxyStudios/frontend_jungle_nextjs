@@ -27,6 +27,10 @@ export const mediaApi = {
     api.get<PaginatedResponse<MediaItem>>(`/v1/users/${username}/photos`, { cursor }),
   getUserVideos: (username: string, cursor?: string) =>
     api.get<PaginatedResponse<MediaItem>>(`/v1/users/${username}/videos`, { cursor }),
+  getGroupMedia: (groupId: number, cursor?: string) =>
+    api.get<PaginatedResponse<MediaItem>>(`/v1/groups/${groupId}/media`, { cursor }),
+  getPageMedia: (pageId: number, cursor?: string) =>
+    api.get<PaginatedResponse<MediaItem>>(`/v1/pages/${pageId}/media`, { cursor }),
   getReel: (id: number) => api.get<Reel>(`/v1/reels/${id}`),
   viewReel: (id: number) => api.post<void>(`/v1/reels/${id}/view`),
   getReelComments: (id: number, cursor?: string) =>

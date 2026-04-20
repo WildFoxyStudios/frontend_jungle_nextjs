@@ -15,6 +15,7 @@ import {
   CardDescription, Separator,
 } from "@jungle/ui";
 import { toast } from "sonner";
+import { SocialLoginButtons } from "@/components/auth/SocialLoginButtons";
 
 type RegisterForm = z.infer<typeof registerSchema>;
 
@@ -36,7 +37,7 @@ export default function RegisterPage() {
     try {
       const res = await authApi.register(data);
       handleAuthResponse(res);
-      router.push("/feed");
+      router.push("/onboarding");
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Registration failed";
       setError(msg);
@@ -88,6 +89,8 @@ export default function RegisterPage() {
         </form>
 
         <Separator />
+
+        <SocialLoginButtons />
 
         <p className="text-center text-sm text-muted-foreground">
           {t("hasAccount")}{" "}

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { postsApi } from "@jungle/api-client";
@@ -13,7 +13,7 @@ export default function BoostedPostsPage() {
   useEffect(() => {
     postsApi.getBoostedPosts()
       .then((r) => setPosts(r.data))
-      .catch(() => {})
+      .catch(() => { /* non-critical: failure is silent */ })
       .finally(() => setLoading(false));
   }, []);
 

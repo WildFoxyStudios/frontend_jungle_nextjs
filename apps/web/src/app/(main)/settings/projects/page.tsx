@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { usersApi } from "@jungle/api-client";
@@ -14,7 +14,7 @@ export default function ProjectsSettingsPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    usersApi.getProjects().then(setProjects).catch(() => {});
+    usersApi.getProjects().then(setProjects).catch(() => { /* non-critical: failure is silent */ });
   }, []);
 
   const handleAdd = async () => {
@@ -78,7 +78,7 @@ export default function ProjectsSettingsPage() {
             </div>
             <div className="flex gap-2">
               <Button onClick={handleAdd} disabled={isLoading || !form.title.trim()}>
-                {isLoading ? "Adding…" : "Add"}
+                {isLoading ? "Adding�" : "Add"}
               </Button>
               <Button variant="ghost" onClick={() => setIsAdding(false)}>Cancel</Button>
             </div>

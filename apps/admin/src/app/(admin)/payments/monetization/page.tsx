@@ -9,9 +9,11 @@ import type { ColumnDef } from "@tanstack/react-table";
 
 export default function MonetizationPage() {
   const [page, setPage] = useState(1);
+  const [status, setStatus] = useState<string | undefined>(undefined);
+
   const { data, isLoading } = useQuery({
-    queryKey: ["admin", "monetization", page],
-    queryFn: () => adminApi.getMonetizationSubscriptions({ page: String(page) }),
+    queryKey: ["admin", "monetization", page, status],
+    queryFn: () => adminApi.getMonetizationSubscriptions({ page: String(page), ...(status ? { status } : {}) }),
   });
 
   const columns: ColumnDef<{ id: number } & Record<string, unknown>>[] = [
@@ -25,11 +27,27 @@ export default function MonetizationPage() {
   ];
 
   return (
-    <AdminPageShell title="Content Monetization" description="Creator subscription management">
+    <AdminPageShell
+      title="Content Monetization"
+      description="Creator subscription management — revenue per creator and payout status."
+      actions={
+        <select
+          className="text-sm border rounded px-2 py-1 bg-background"
+          value={status ?? ""}
+          onChange={(e) => { setStatus(e.target.value || undefined); setPage(1); }}
+        >
+          <option value="">All statuses</option>
+          <option value="active">Active</option>
+          <option value="cancelled">Cancelled</option>
+          <option value="expired">Expired</option>
+        </select>
+      }
+    >
       <DataTable
         data={(data?.data ?? []) as ({ id: number } & Record<string, unknown>)[]}
         columns={columns}
         isLoading={isLoading}
+        searchPlaceholder="Search subscriptions…"
         pagination={data ? { page, total: data.meta.total ?? 0, perPage: 20, onPageChange: setPage } : undefined}
       />
     </AdminPageShell>

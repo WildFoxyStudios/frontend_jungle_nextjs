@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -35,7 +35,7 @@ export default function MonetizationSettingsPage() {
     if (!user) return;
     paymentsApi.getCreatorTiers(user.id)
       .then(setTiers)
-      .catch(() => {})
+      .catch(() => { /* non-critical: failure is silent */ })
       .finally(() => setLoading(false));
   }, [user]);
 
@@ -99,7 +99,7 @@ export default function MonetizationSettingsPage() {
                 </div>
               </div>
               <div className="flex gap-2">
-                <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Creating…" : "Create Tier"}</Button>
+                <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Creating�" : "Create Tier"}</Button>
                 <Button type="button" variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
               </div>
             </form>

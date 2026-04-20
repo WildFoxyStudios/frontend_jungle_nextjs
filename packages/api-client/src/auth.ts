@@ -75,8 +75,8 @@ export const authApi = {
   getBackupCodes: () =>
     api.get<{ codes: string[] }>("/v1/auth/2fa/backup-codes"),
 
-  socialLogin: (provider: string, code: string) =>
-    api.post<AuthResponse>(`/v1/auth/social/${provider}`, { code }),
+  socialLogin: (provider: string, access_token: string) =>
+    api.post<AuthResponse>("/v1/auth/social/login", { provider, access_token }),
 
   getSessions: () =>
     api.get<UserSession[]>("/v1/auth/sessions"),
@@ -86,6 +86,18 @@ export const authApi = {
 
   changePassword: (current_password: string, new_password: string) =>
     api.put<{ message: string }>("/v1/auth/password", { current_password, new_password }),
+
+  /**
+   * Set an initial password on an OAuth/social-login account that doesn't
+   * have one yet. Matches the backend endpoint added alongside the nullable
+   * `users.password_hash` migration. Use `changePassword` instead once a
+   * password is already set.
+   */
+  setSocialPassword: (new_password: string) =>
+    api.post<{ changed: boolean; message: string }>(
+      "/v1/auth/social/set-password",
+      { new_password },
+    ),
 
   isAuthResponse,
 };

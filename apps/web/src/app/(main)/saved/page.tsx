@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { postsApi } from "@jungle/api-client";
@@ -13,7 +13,7 @@ export default function SavedPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    postsApi.getSavedPosts().then((r) => setPosts(r.data)).catch(() => {}).finally(() => setLoading(false));
+    postsApi.getSavedPosts().then((r) => setPosts(r.data)).catch(() => { /* non-critical: failure is silent */ }).finally(() => setLoading(false));
   }, []);
 
   return (

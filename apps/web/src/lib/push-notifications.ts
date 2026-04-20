@@ -59,7 +59,7 @@ export function playNotificationSound(): void {
   try {
     const audio = new Audio("/sounds/notification.mp3");
     audio.volume = 0.3;
-    audio.play().catch(() => {});
+    audio.play().catch(() => { /* non-critical: failure is silent */ });
   } catch {
     // Ignore audio errors
   }

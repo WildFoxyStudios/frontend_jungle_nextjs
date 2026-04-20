@@ -6,6 +6,7 @@ import { pagesApi } from "@jungle/api-client";
 import type { Page } from "@jungle/api-client";
 import { Button, Card, CardContent, Avatar, AvatarFallback, AvatarImage, Skeleton } from "@jungle/ui";
 import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 
 export default function PagesPage() {
   const [pages, setPages] = useState<Page[]>([]);
@@ -13,7 +14,10 @@ export default function PagesPage() {
   const t = useTranslations("pages");
 
   useEffect(() => {
-    pagesApi.getPages().then((r) => setPages(r.data)).catch(() => {}).finally(() => setLoading(false));
+    pagesApi.getPages()
+      .then((r) => setPages(r.data))
+      .catch((err) => toast.error(err instanceof Error ? err.message : "Failed to load pages"))
+      .finally(() => setLoading(false));
   }, []);
 
   return (

@@ -11,6 +11,8 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@emoji-mart/data": "^1.2.1",
+    "@emoji-mart/react": "^1.1.1",
     "@ffmpeg/ffmpeg": "^0.12.15",
     "@ffmpeg/util": "^0.12.2",
     "@hookform/resolvers": "^3.9.1",
@@ -27,6 +29,7 @@
     "@tiptap/starter-kit": "^2.11.2",
     "@types/leaflet": "^1.9.21",
     "@vidstack/react": "^1.12.12",
+    "agora-rtc-sdk-ng": "^4.24.3",
     "browser-image-compression": "^2.0.2",
     "hls.js": "^1.5.15",
     "leaflet": "^1.9.4",

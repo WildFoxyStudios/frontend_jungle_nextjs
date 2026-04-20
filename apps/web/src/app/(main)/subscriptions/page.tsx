@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { paymentsApi } from "@jungle/api-client";
@@ -14,7 +14,7 @@ export default function SubscriptionsPage() {
   useEffect(() => {
     paymentsApi.getMySubscriptions()
       .then(setSubscriptions)
-      .catch(() => {})
+      .catch(() => { /* non-critical: failure is silent */ })
       .finally(() => setLoading(false));
   }, []);
 

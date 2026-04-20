@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { usersApi } from "@jungle/api-client";
@@ -44,7 +44,7 @@ export default function NotificationSettingsPage() {
         const ns = (user as { notification_settings?: NotificationSettings }).notification_settings;
         if (ns) setSettings(ns);
       })
-      .catch(() => {})
+      .catch(() => { /* non-critical: failure is silent */ })
       .finally(() => setLoading(false));
   }, []);
 
@@ -82,7 +82,7 @@ export default function NotificationSettingsPage() {
           </div>
         ))}
         <Button onClick={handleSave} disabled={saving} className="w-full mt-4">
-          {saving ? "Saving…" : "Save Preferences"}
+          {saving ? "Saving�" : "Save Preferences"}
         </Button>
       </CardContent>
     </Card>

@@ -1,6 +1,37 @@
 ﻿import { api } from "./client";
 import type { User, PaginatedResponse } from "./types/index";
 
+/**
+ * Configurable site_config key definition, returned by
+ * `GET /v1/admin/config/catalog`. Drives the auto-generated settings forms
+ * in the admin UI — see `@/components/admin/CatalogSettingsForm`.
+ * Shape mirrors `admin-service/src/handlers/config_catalog.rs::FieldSpec`.
+ */
+export type ConfigFieldType =
+  | "text"
+  | "password"
+  | "email"
+  | "url"
+  | "number"
+  | "boolean"
+  | "textarea"
+  | "select"
+  | "json"
+  | "media_url";
+
+export interface ConfigFieldSpec {
+  category: string;
+  key: string;
+  label: string;
+  type: ConfigFieldType;
+  description?: string;
+  group?: string;
+  default?: string;
+  secret?: boolean;
+  options?: string[];
+  placeholder?: string;
+}
+
 export const adminApi = {
   getDashboardStats: () => api.get<Record<string, number>>("/v1/admin/dashboard"),
   getDashboardCharts: () => api.get<{
@@ -10,6 +41,17 @@ export const adminApi = {
   }>("/v1/admin/dashboard/charts"),
   getTopCountries: () => api.get<{ country: string; count: number }[]>("/v1/admin/dashboard/top-countries"),
   getSystemInfo: () => api.get<Record<string, unknown>>("/v1/admin/system-info"),
+  getChangelog: () =>
+    api.get<{
+      backend_version: string;
+      migrations: Array<{
+        version: string;
+        description: string;
+        installed_on: string;
+        success: boolean;
+        execution_time_ms: number;
+      }>;
+    }>("/v1/admin/changelog"),
   getUsers: (params?: Record<string, string | number | boolean | undefined>) =>
     api.get<PaginatedResponse<User>>("/v1/admin/users", params),
   getUser: (id: number) => api.get<User>(`/v1/admin/users/${id}`),
@@ -60,6 +102,13 @@ export const adminApi = {
     api.put<void>("/v1/admin/config", data),
   updateConfigCategory: (category: string, data: Record<string, unknown>) =>
     api.put<void>(`/v1/admin/config/${category}`, data),
+  getConfigCatalog: () =>
+    api.get<{
+      categories: string[];
+      fields: ConfigFieldSpec[];
+      by_category: Record<string, ConfigFieldSpec[]>;
+      total: number;
+    }>("/v1/admin/config/catalog"),
   getLanguages: () => api.get<unknown[]>("/v1/admin/languages"),
   createLanguage: (data: { name: string; code: string; rtl: boolean }) =>
     api.post<unknown>("/v1/admin/languages", data),
@@ -315,4 +364,40 @@ export const adminApi = {
   approveAdminBlog: (id: number) => api.post<void>(`/v1/admin/site-blogs/${id}/approve`),
   updateAdminForum: (id: number, data: Record<string, unknown>) =>
     api.put<unknown>(`/v1/admin/site-forums/${id}`, data),
+
+  // AI Providers (routed under /v1/ai to reach ai-service)
+  listAiProviders: () =>
+    api.get<{
+      id: number;
+      name: string;
+      provider_type: "openai" | "anthropic" | "gemini";
+      capability: "text" | "image" | "both";
+      api_key_masked: string;
+      model_text: string | null;
+      model_image: string | null;
+      enabled: boolean;
+      priority: number;
+    }[]>("/v1/ai/admin/providers"),
+  createAiProvider: (data: {
+    name: string;
+    provider_type: "openai" | "anthropic" | "gemini";
+    capability: "text" | "image" | "both";
+    api_key: string;
+    model_text?: string;
+    model_image?: string;
+    enabled?: boolean;
+    priority?: number;
+  }) => api.post<{ id: number }>("/v1/ai/admin/providers", data),
+  updateAiProvider: (id: number, data: {
+    api_key?: string;
+    model_text?: string;
+    model_image?: string;
+    enabled?: boolean;
+    priority?: number;
+  }) => api.patch<{ updated: true }>(`/v1/ai/admin/providers/${id}`, data),
+  deleteAiProvider: (id: number) => api.delete<{ deleted: true }>(`/v1/ai/admin/providers/${id}`),
+  testAiProvider: (id: number) =>
+    api.post<{ ok: boolean; reply?: string; provider?: string; error?: string }>(
+      `/v1/ai/admin/providers/${id}/test`,
+    ),
 };

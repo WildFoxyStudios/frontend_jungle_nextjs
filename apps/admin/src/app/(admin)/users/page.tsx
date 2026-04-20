@@ -63,13 +63,29 @@ const columns: ColumnDef<User>[] = [
   },
 ];
 
+const FILTER_OPTIONS = [
+  { label: "All", value: "all" },
+  { label: "Active", value: "active" },
+  { label: "Banned", value: "banned" },
+  { label: "Verified", value: "verified" },
+  { label: "Pro", value: "pro" },
+  { label: "Admin", value: "admin" },
+];
+
 export default function UsersPage() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState("all");
 
   const { data, isLoading, refetch } = useQuery({
-    queryKey: ["admin", "users", page, search],
-    queryFn: () => adminApi.getUsers({ page, q: search, per_page: 20 }),
+    queryKey: ["admin", "users", page, search, filter],
+    queryFn: () =>
+      adminApi.getUsers({
+        page,
+        q: search || undefined,
+        per_page: 20,
+        status: filter !== "all" ? filter : undefined,
+      }),
   });
 
   const users = data?.data ?? [];
@@ -122,13 +138,27 @@ export default function UsersPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold">Users</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Users</h1>
+        <div className="flex gap-1 flex-wrap">
+          {FILTER_OPTIONS.map((opt) => (
+            <Button
+              key={opt.value}
+              size="sm"
+              variant={filter === opt.value ? "default" : "outline"}
+              onClick={() => { setFilter(opt.value); setPage(1); }}
+            >
+              {opt.label}
+            </Button>
+          ))}
+        </div>
+      </div>
       <DataTable
         data={users}
         columns={columns}
         isLoading={isLoading}
         searchPlaceholder="Search users…"
-        onSearch={setSearch}
+        onSearch={(q) => { setSearch(q); setPage(1); }}
         bulkActions={bulkActions}
         pagination={{ page, total, perPage: 20, onPageChange: setPage }}
       />

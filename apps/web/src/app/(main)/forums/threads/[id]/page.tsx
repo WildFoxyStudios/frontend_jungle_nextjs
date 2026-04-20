@@ -33,7 +33,7 @@ export default function ForumThreadPage({ params }: Props) {
   useEffect(() => {
     contentApi.getForumThread(threadId)
       .then(setThread)
-      .catch(() => {})
+      .catch((err) => toast.error(err instanceof Error ? err.message : "Failed to load thread"))
       .finally(() => setLoading(false));
   }, [threadId]);
 

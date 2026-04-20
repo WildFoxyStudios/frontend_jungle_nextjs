@@ -14,6 +14,12 @@ export const commerceApi = {
   getOrderTracking: (id: number) => api.get<unknown>(`/v1/orders/${id}/tracking`),
   requestOrderRefund: (id: number, reason: string) =>
     api.post<void>(`/v1/orders/${id}/refund`, { reason }),
+  /**
+   * Download an order's invoice PDF. Returns the Blob and suggested filename;
+   * callers typically pipe it into an `<a>` with `URL.createObjectURL(...)`.
+   */
+  downloadOrderInvoice: (id: number) =>
+    api.getBlob(`/v1/orders/${id}/invoice`),
   getCart: () => api.get<Cart>("/v1/cart"),
   addToCart: (productId: number, qty: number) =>
     api.post<Cart>("/v1/cart", { product_id: productId, quantity: qty }),

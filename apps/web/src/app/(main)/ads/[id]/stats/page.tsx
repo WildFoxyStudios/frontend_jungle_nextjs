@@ -4,6 +4,7 @@ import { use, useEffect, useState } from "react";
 import { contentApi } from "@jungle/api-client";
 import { Card, CardContent, CardHeader, CardTitle, Skeleton } from "@jungle/ui";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { toast } from "sonner";
 
 interface Props { params: Promise<{ id: string }> }
 
@@ -28,7 +29,7 @@ export default function AdStatsPage({ params }: Props) {
         ctr: totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0,
         daily: data,
       });
-    }).catch(() => {});
+    }).catch((err) => toast.error(err instanceof Error ? err.message : "Failed to load ad stats"));
   }, [id]);
 
   if (!stats) return <Skeleton className="h-64 w-full max-w-3xl mx-auto mt-4" />;

@@ -1,9 +1,10 @@
-﻿import { api } from "./client";
+import { api } from "./client";
 import type { Post, Comment, ReactionType, ColoredTemplate, PaginatedResponse } from "./types/index";
+import type { PublicUser } from "./types/user";
 
 export interface CreatePostPayload {
   content: string;
-  privacy: "public" | "friends" | "only_me";
+  privacy: Post["privacy"];
   post_type?: string;
   feeling?: string;
   location?: string;
@@ -13,6 +14,8 @@ export interface CreatePostPayload {
   page_id?: number;
   colored_background?: string;
   colored_text_color?: string;
+  scheduled_at?: string;
+  media?: { id?: number; url: string; type: string; thumbnail?: string }[];
 }
 
 export const postsApi = {
@@ -20,8 +23,10 @@ export const postsApi = {
     api.get<PaginatedResponse<Post>>("/v1/feed", { cursor, filter }),
   getExploreFeed: (cursor?: string) =>
     api.get<PaginatedResponse<Post>>("/v1/feed/explore", { cursor }),
-  getMostLiked: (cursor?: string) =>
-    api.get<PaginatedResponse<Post>>("/v1/posts/most-liked", { cursor }),
+  getMostLiked: (cursor?: string, period?: "today" | "week" | "month" | "all") =>
+    api.get<PaginatedResponse<Post>>("/v1/posts/most-liked", { cursor, period }),
+  getOpenToWorkPosts: (cursor?: string) =>
+    api.get<PaginatedResponse<Post>>("/v1/posts/open-to-work", { cursor }),
   getMemories: (cursor?: string) =>
     api.get<PaginatedResponse<Post>>("/v1/memories", { cursor }),
   getPost: (id: number) => api.get<Post>(`/v1/posts/${id}`),
@@ -45,9 +50,11 @@ export const postsApi = {
     api.post<void>(`/v1/posts/${postId}/poll/vote`, { option_id: optionId }),
   getComments: (postId: number, cursor?: string) =>
     api.get<PaginatedResponse<Comment>>(`/v1/posts/${postId}/comments`, { cursor }),
-  createComment: (postId: number, data: { content: string; reply_to?: number }) =>
+  createComment: (postId: number, data: { content: string; reply_to?: number; media_id?: number }) =>
     api.post<Comment>(`/v1/posts/${postId}/comments`, data),
   deleteComment: (id: number) => api.delete<void>(`/v1/comments/${id}`),
+  updateComment: (id: number, data: { content: string }) =>
+    api.patch<Comment>(`/v1/comments/${id}`, data),
   reactToComment: (id: number, reaction: string) =>
     api.post<void>(`/v1/comments/${id}/react`, { reaction }),
   getUserPosts: (username: string, cursor?: string) =>
@@ -56,10 +63,19 @@ export const postsApi = {
     api.upload<{ media: import("./types/index").MediaItem[] }>("/v1/media/upload", formData, onProgress),
   getBoostedPosts: (cursor?: string) =>
     api.get<PaginatedResponse<Post>>("/v1/boosted/posts", { cursor }),
-  reportPost: (id: number, reason: string) =>
-    api.post<void>(`/v1/posts/${id}/report`, { reason }),
+  reportPost: (id: number, reason: string, details?: string) =>
+    api.post<void>(`/v1/posts/${id}/report`, { reason, details }),
   pinPost: (id: number) => api.post<void>(`/v1/posts/${id}/pin`),
   unpinPost: (id: number) => api.delete<void>(`/v1/posts/${id}/pin`),
-  boostPost: (id: number, budget: number) =>
-    api.post<void>(`/v1/posts/${id}/boost`, { budget }),
+  boostPost: (id: number, budget: number, days?: number) =>
+    api.post<{ boosted: true }>(`/v1/posts/${id}/boost`, { budget, days }),
+  unboostPost: (id: number) =>
+    api.delete<{ boosted: false }>(`/v1/posts/${id}/boost`),
+  toggleCommentsStatus: (id: number, enabled: boolean) =>
+    api.put<{ can_comment: boolean }>(`/v1/posts/${id}/comments-status`, { enabled }),
+  getPostReactors: (id: number, reactionType?: string, cursor?: number) =>
+    api.get<PaginatedResponse<PublicUser & { reaction: string }>>(
+      `/v1/posts/${id}/reactors`,
+      { type: reactionType, cursor }
+    ),
 };

@@ -1,8 +1,30 @@
 ﻿import { api } from "./client";
 import type { User, PublicUser, PaginatedResponse, CustomProfileField, UserExperience, UserCertification, UserSkill, UserProject } from "./types/index";
 
+export interface ProfessionalSearchResult {
+  id: number;
+  username: string;
+  first_name: string;
+  last_name: string;
+  avatar: string;
+  is_verified: boolean;
+  is_pro: number;
+  working: string;
+  school: string;
+  about: string;
+  address: string;
+  city: string;
+  website: string;
+}
+
 export const usersApi = {
   getMe: () => api.get<User>("/v1/users/me"),
+  searchProfessionals: (q: string, location?: string, limit?: number) =>
+    api.get<ProfessionalSearchResult[]>("/v1/users/search/professional", {
+      q,
+      location,
+      limit,
+    }),
   updateMe: (data: Partial<User>) => api.put<User>("/v1/users/me", data),
   getUser: (username: string) => api.get<User>(`/v1/users/${username}`),
   follow: (userId: number) => api.post<void>(`/v1/social/follow/${userId}`),
@@ -17,9 +39,9 @@ export const usersApi = {
   getFollowing: (username: string, cursor?: string) =>
     api.get<PaginatedResponse<PublicUser>>(`/v1/users/${username}/following`, { cursor }),
   updateAvatar: (formData: FormData, onProgress?: (pct: number) => void) =>
-    api.upload<{ avatar: string }>("/v1/users/me/avatar", formData, onProgress),
+    api.upload<{ data: { avatar: string } }>("/v1/media/upload/avatar", formData, onProgress).then((r) => r.data),
   updateCover: (formData: FormData, onProgress?: (pct: number) => void) =>
-    api.upload<{ cover: string }>("/v1/users/me/cover", formData, onProgress),
+    api.upload<{ data: { cover: string } }>("/v1/media/upload/cover", formData, onProgress).then((r) => r.data),
   getCommonThings: (username: string) =>
     api.get<{ friends: PublicUser[]; groups: unknown[]; pages: unknown[] }>(`/v1/users/${username}/common`),
   requestFamilyRelationship: (userId: number, relation: string) =>
@@ -56,6 +78,22 @@ export const usersApi = {
   getReferrals: () => api.get<{ total: number; users: PublicUser[]; earned: number }>("/v1/users/me/referrals"),
   getSuggestions: (cursor?: string) =>
     api.get<PublicUser[]>("/v1/users/suggestions", { cursor }),
+  getPopover: (username: string) =>
+    api.get<{
+      id: number;
+      username: string;
+      first_name: string | null;
+      last_name: string | null;
+      avatar: string | null;
+      about: string | null;
+      is_verified: boolean;
+      follower_count: number;
+      following_count: number;
+      post_count: number;
+      is_following: boolean;
+    }>(`/v1/users/${username}/popover`),
+  onboardingSkip: (step: "avatar" | "info" | "follow") =>
+    api.post<{ skipped: string }>("/v1/users/me/onboarding/skip", { step }),
   downloadMyInfo: () => api.post<{ download_url: string }>("/v1/users/me/download-info"),
   requestVerification: (formData: FormData) => api.upload<void>("/v1/users/me/verification-request", formData),
   deleteMe: () => api.delete<void>("/v1/users/me"),

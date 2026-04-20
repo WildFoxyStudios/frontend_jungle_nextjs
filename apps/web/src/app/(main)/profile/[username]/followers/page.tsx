@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usersApi } from "@jungle/api-client";
 import type { PublicUser } from "@jungle/api-client";
 import { Avatar, AvatarFallback, AvatarImage, Skeleton } from "@jungle/ui";
+import { toast } from "sonner";
 
 interface Props { params: Promise<{ username: string }> }
 
@@ -14,7 +15,10 @@ export default function FollowersPage({ params }: Props) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    usersApi.getFollowers(username).then((r) => setUsers(r.data)).catch(() => {}).finally(() => setLoading(false));
+    usersApi.getFollowers(username)
+      .then((r) => setUsers(r.data))
+      .catch((err) => toast.error(err instanceof Error ? err.message : "Failed to load followers"))
+      .finally(() => setLoading(false));
   }, [username]);
 
   return (

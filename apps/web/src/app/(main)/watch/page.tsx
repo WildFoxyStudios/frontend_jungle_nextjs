@@ -1,10 +1,9 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { mediaApi } from "@jungle/api-client";
 import type { Movie } from "@jungle/api-client";
 import { Skeleton, Card, CardContent, Badge } from "@jungle/ui";
-import Image from "next/image";
 import Link from "next/link";
 
 export default function WatchPage() {
@@ -14,7 +13,7 @@ export default function WatchPage() {
   useEffect(() => {
     mediaApi.getMovies()
       .then((r) => setMovies(r.data))
-      .catch(() => {})
+      .catch(() => { /* non-critical: failure is silent */ })
       .finally(() => setLoading(false));
   }, []);
 
@@ -28,16 +27,18 @@ export default function WatchPage() {
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {movies.map((movie) => (
-            <Card key={movie.id} className="overflow-hidden hover:shadow-md transition-shadow">
-              <div className="relative aspect-video bg-muted">
-                {movie.thumbnail && <Image src={movie.thumbnail} alt={movie.title} fill className="object-cover" />}
-              </div>
-              <CardContent className="p-3 space-y-1">
-                <p className="font-semibold text-sm line-clamp-1">{movie.title}</p>
-                {movie.genre && <Badge variant="secondary" className="text-xs">{movie.genre}</Badge>}
-                <p className="text-xs text-muted-foreground">{movie.view_count} views</p>
-              </CardContent>
-            </Card>
+            <Link key={movie.id} href={`/watch/${movie.id}`}>
+              <Card className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer">
+                <div className="relative aspect-video bg-muted">
+                  {movie.thumbnail && <img src={movie.thumbnail} alt={movie.title} className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />}
+                </div>
+                <CardContent className="p-3 space-y-1">
+                  <p className="font-semibold text-sm line-clamp-1">{movie.title}</p>
+                  {movie.genre && <Badge variant="secondary" className="text-xs">{movie.genre}</Badge>}
+                  <p className="text-xs text-muted-foreground">{movie.view_count} views</p>
+                </CardContent>
+              </Card>
+            </Link>
           ))}
           {movies.length === 0 && <p className="col-span-4 text-muted-foreground text-center py-12">No videos yet.</p>}
         </div>

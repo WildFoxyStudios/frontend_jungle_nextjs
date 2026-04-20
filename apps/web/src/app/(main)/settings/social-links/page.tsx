@@ -27,7 +27,7 @@ export default function SocialLinksPage() {
         const sl = user.social_links ?? {};
         setLinks({ website: user.website ?? "", ...sl });
       })
-      .catch(() => {})
+      .catch(() => { /* non-critical: failure is silent */ })
       .finally(() => setLoading(false));
   }, []);
 

@@ -62,10 +62,18 @@ export interface Post {
     | "poll"
     | "shared"
     | "reel"
-    | "story";
+    | "story"
+    | "fund"
+    | "job"
+    | "offer"
+    | "event"
+    | "blog"
+    | "product"
+    | "ad"
+    | "live";
   media: MediaItem[];
   colored_post?: ColoredPost;
-  privacy: "public" | "friends" | "only_me" | "custom";
+  privacy: "public" | "friends" | "only_me" | "custom" | "people_i_follow" | "people_follow_me" | "anonymous";
   feeling?: string;
   location?: string;
   link_url?: string;
@@ -75,6 +83,7 @@ export interface Post {
   like_count: number;
   comment_count: number;
   share_count: number;
+  view_count: number;
   my_reaction?: string;
   reaction_counts: Record<string, number>;
   recent_comments: Comment[];
@@ -84,6 +93,19 @@ export interface Post {
   page_info?: { id: number; name: string; avatar: string };
   shared_post?: Post;
   poll?: Poll;
+  fund_info?: { id: number; title: string; amount: number; raised: number; bar: number };
+  job_info?: { id: number; title: string; location: string; type: string; category: string; salary?: string };
+  offer_info?: { id: number; title: string; discount: string; description: string; expires_at: string };
+  event_info?: { id: number; name: string; location: string; start_date: string; cover: string };
+  blog_info?: { id: number; title: string; description: string; thumbnail: string; url: string };
+  product_info?: { id: number; name: string; price: number; currency: string; location: string; category: string; in_stock: boolean; image: string };
+  is_monetized?: boolean;
+  is_ad?: boolean;
+  ad_info?: { id: number; headline: string; description: string; url: string; image: string; sponsor: string };
+  live_info?: { is_live: boolean; viewer_count: number; recording_url?: string };
+  is_pinned?: boolean;
+  is_boosted?: boolean;
+  can_comment?: boolean;
   created_at: string;
   updated_at: string;
 }

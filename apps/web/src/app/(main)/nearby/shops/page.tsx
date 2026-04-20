@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { commerceApi } from "@jungle/api-client";
 import type { Product } from "@jungle/api-client";
 import { Card, CardContent, Skeleton, Badge } from "@jungle/ui";
-import Image from "next/image";
 import Link from "next/link";
 import { MapPin } from "lucide-react";
 
@@ -64,7 +63,7 @@ export default function NearbyShopsPage() {
             <Card className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer">
               <div className="relative aspect-square bg-muted">
                 {product.images?.[0] && (
-                  <Image src={product.images[0].url} alt={product.title} fill className="object-cover" />
+                  <img src={product.images[0].url} alt={product.title} className="absolute inset-0 w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
                 )}
               </div>
               <CardContent className="p-3">

@@ -55,8 +55,9 @@ describe("ApiClient", () => {
       });
 
       global.fetch = mockFetch;
-      const result = await client.get<{ data: string }>("/test");
-      expect(result.data).toBe("ok");
+      // ApiClient unwraps single-key `{ data: ... }` envelopes into the inner value.
+      const result = await client.get<string>("/test");
+      expect(result).toBe("ok");
       expect(callCount).toBe(3); // original + refresh + retry
     });
 

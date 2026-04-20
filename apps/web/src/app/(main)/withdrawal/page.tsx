@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -37,7 +37,7 @@ export default function WithdrawalPage() {
     ]).then(([w, wr]) => {
       setWallet(w);
       setWithdrawals(wr.data as WithdrawalRequest[]);
-    }).catch(() => {}).finally(() => setLoading(false));
+    }).catch(() => { /* non-critical: failure is silent */ }).finally(() => setLoading(false));
   }, []);
 
   const onSubmit = async (data: WithdrawalForm) => {
@@ -98,7 +98,7 @@ export default function WithdrawalPage() {
               {errors.account_details && <p className="text-xs text-destructive">{errors.account_details.message}</p>}
             </div>
             <Button type="submit" disabled={isSubmitting} className="w-full">
-              {isSubmitting ? "Submitting…" : "Request Withdrawal"}
+              {isSubmitting ? "Submitting�" : "Request Withdrawal"}
             </Button>
           </form>
         </CardContent>

@@ -21,12 +21,28 @@ const passwordSchema = z.object({
 
 type PasswordForm = z.infer<typeof passwordSchema>;
 
+const setPasswordSchema = z.object({
+  new_password: z.string().min(8, "At least 8 characters"),
+  confirm_password: z.string().min(1, "Required"),
+}).refine((d) => d.new_password === d.confirm_password, {
+  message: "Passwords don't match",
+  path: ["confirm_password"],
+});
+
+type SetPasswordForm = z.infer<typeof setPasswordSchema>;
+
 export default function SecuritySettingsPage() {
-  const { user } = useAuthStore();
+  const { user, setUser } = useAuthStore();
   const [twoFAEnabled, setTwoFAEnabled] = useState(false);
   const [qrCode, setQrCode] = useState<string | null>(null);
   const [backupCodes, setBackupCodes] = useState<string[]>([]);
   const [loading2FA, setLoading2FA] = useState(false);
+
+  const hasPassword = (user as { has_password?: boolean } | null)?.has_password ?? true;
+
+  const setPasswordForm = useForm<SetPasswordForm>({
+    resolver: zodResolver(setPasswordSchema),
+  });
 
   const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<PasswordForm>({
     resolver: zodResolver(passwordSchema),
@@ -45,6 +61,17 @@ export default function SecuritySettingsPage() {
       reset();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to change password. Check your current password.");
+    }
+  };
+
+  const onSetInitialPassword = async (data: SetPasswordForm) => {
+    try {
+      await authApi.setSocialPassword(data.new_password);
+      toast.success("Password set. You can now sign in with your email and password.");
+      setPasswordForm.reset();
+      if (user) setUser({ ...user, has_password: true });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to set password.");
     }
   };
 
@@ -89,34 +116,61 @@ export default function SecuritySettingsPage() {
 
   return (
     <div className="space-y-4">
-      {/* Change Password */}
+      {/* Password — change if one exists, otherwise set initial */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Key className="h-5 w-5" /> Change Password
+            <Key className="h-5 w-5" /> {hasPassword ? "Change Password" : "Set Password"}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit(onChangePassword)} className="space-y-4">
-            <div className="space-y-1.5">
-              <Label>Current Password</Label>
-              <Input type="password" {...register("current_password")} />
-              {errors.current_password && <p className="text-xs text-destructive">{errors.current_password.message}</p>}
-            </div>
-            <div className="space-y-1.5">
-              <Label>New Password</Label>
-              <Input type="password" {...register("new_password")} />
-              {errors.new_password && <p className="text-xs text-destructive">{errors.new_password.message}</p>}
-            </div>
-            <div className="space-y-1.5">
-              <Label>Confirm New Password</Label>
-              <Input type="password" {...register("confirm_password")} />
-              {errors.confirm_password && <p className="text-xs text-destructive">{errors.confirm_password.message}</p>}
-            </div>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Changing…" : "Change Password"}
-            </Button>
-          </form>
+          {hasPassword ? (
+            <form onSubmit={handleSubmit(onChangePassword)} className="space-y-4">
+              <div className="space-y-1.5">
+                <Label>Current Password</Label>
+                <Input type="password" autoComplete="current-password" {...register("current_password")} />
+                {errors.current_password && <p className="text-xs text-destructive">{errors.current_password.message}</p>}
+              </div>
+              <div className="space-y-1.5">
+                <Label>New Password</Label>
+                <Input type="password" autoComplete="new-password" {...register("new_password")} />
+                {errors.new_password && <p className="text-xs text-destructive">{errors.new_password.message}</p>}
+              </div>
+              <div className="space-y-1.5">
+                <Label>Confirm New Password</Label>
+                <Input type="password" autoComplete="new-password" {...register("confirm_password")} />
+                {errors.confirm_password && <p className="text-xs text-destructive">{errors.confirm_password.message}</p>}
+              </div>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "Changing…" : "Change Password"}
+              </Button>
+            </form>
+          ) : (
+            <form onSubmit={setPasswordForm.handleSubmit(onSetInitialPassword)} className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Your account was created through a social login and doesn’t
+                have a password yet. Set one here to sign in with your email
+                and password in addition to the original provider.
+              </p>
+              <div className="space-y-1.5">
+                <Label>New Password</Label>
+                <Input type="password" autoComplete="new-password" {...setPasswordForm.register("new_password")} />
+                {setPasswordForm.formState.errors.new_password && (
+                  <p className="text-xs text-destructive">{setPasswordForm.formState.errors.new_password.message}</p>
+                )}
+              </div>
+              <div className="space-y-1.5">
+                <Label>Confirm New Password</Label>
+                <Input type="password" autoComplete="new-password" {...setPasswordForm.register("confirm_password")} />
+                {setPasswordForm.formState.errors.confirm_password && (
+                  <p className="text-xs text-destructive">{setPasswordForm.formState.errors.confirm_password.message}</p>
+                )}
+              </div>
+              <Button type="submit" disabled={setPasswordForm.formState.isSubmitting}>
+                {setPasswordForm.formState.isSubmitting ? "Setting…" : "Set Password"}
+              </Button>
+            </form>
+          )}
         </CardContent>
       </Card>
 

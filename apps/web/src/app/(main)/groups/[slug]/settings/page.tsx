@@ -1,7 +1,6 @@
 ﻿"use client";
 
 import { use, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { groupsApi } from "@jungle/api-client";
 import type { Group } from "@jungle/api-client";
 import { useMediaUpload } from "@jungle/hooks";
@@ -12,7 +11,6 @@ interface Props { params: Promise<{ slug: string }> }
 
 export default function GroupSettingsPage({ params }: Props) {
   const { slug } = use(params);
-  const router = useRouter();
   const { uploadImage, isUploading } = useMediaUpload();
   const [group, setGroup] = useState<Group | null>(null);
   const [form, setForm] = useState({ name: "", description: "", category: "", privacy: "public" });
@@ -39,18 +37,6 @@ export default function GroupSettingsPage({ params }: Props) {
     } finally { setSaving(false); }
   };
 
-  const handleDelete = async () => {
-    if (!group) return;
-    if (!confirm("Delete this group? This cannot be undone.")) return;
-    try {
-      await groupsApi.deleteGroup(group.id);
-      toast.success("Group deleted");
-      router.push("/groups");
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to delete group");
-    }
-  };
-
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!group) return;
     const file = e.target.files?.[0]; if (!file) return;
@@ -68,9 +54,7 @@ export default function GroupSettingsPage({ params }: Props) {
   if (!group) return <p className="text-center mt-8 text-muted-foreground">Group not found or access denied.</p>;
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
-      <h1 className="text-2xl font-bold">Group Settings</h1>
-
+    <div className="space-y-6">
       <Card>
         <CardHeader><CardTitle>General</CardTitle></CardHeader>
         <CardContent className="space-y-4">
@@ -102,12 +86,45 @@ export default function GroupSettingsPage({ params }: Props) {
         </CardContent>
       </Card>
 
-      <Card className="border-destructive">
-        <CardHeader><CardTitle className="text-destructive">Danger Zone</CardTitle></CardHeader>
-        <CardContent>
-          <Button variant="destructive" onClick={handleDelete}>Delete Group</Button>
-        </CardContent>
-      </Card>
+      <GroupCoverCard group={group} />
+
     </div>
+  );
+}
+
+function GroupCoverCard({ group }: { group: Group }) {
+  const { uploadImage, isUploading } = useMediaUpload();
+  const [coverUrl, setCoverUrl] = useState(group.cover || "");
+
+  const handleCoverChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]; if (!file) return;
+    const media = await uploadImage(file, "cover");
+    if (media) {
+      try {
+        await groupsApi.updateGroup(group.id, { cover: media.url });
+        setCoverUrl(media.url);
+        toast.success("Cover updated");
+      } catch {
+        toast.error("Failed to update cover");
+      }
+    }
+    e.target.value = "";
+  };
+
+  return (
+    <Card>
+      <CardHeader><CardTitle>Group Cover</CardTitle></CardHeader>
+      <CardContent className="space-y-3">
+        {coverUrl && (
+          <div className="aspect-[3/1] rounded-lg overflow-hidden bg-muted">
+            <img src={coverUrl} alt="Cover" className="w-full h-full object-cover" />
+          </div>
+        )}
+        <input type="file" accept="image/*" className="hidden" id="group-cover" onChange={handleCoverChange} />
+        <label htmlFor="group-cover">
+          <Button asChild variant="outline" disabled={isUploading}><span>{isUploading ? "Uploading…" : coverUrl ? "Change cover" : "Upload cover"}</span></Button>
+        </label>
+      </CardContent>
+    </Card>
   );
 }

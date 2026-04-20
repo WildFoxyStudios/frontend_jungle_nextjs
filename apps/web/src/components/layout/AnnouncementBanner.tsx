@@ -13,7 +13,7 @@ export function AnnouncementBanner() {
   useEffect(() => {
     notificationsApi.getAnnouncements()
       .then((data) => setAnnouncements(data))
-      .catch(() => {});
+      .catch(() => { /* non-critical: failure is silent */ });
   }, []);
 
   const visible = announcements.filter((a) => !dismissed.has(a.id));

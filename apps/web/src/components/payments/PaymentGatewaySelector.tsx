@@ -2,9 +2,12 @@
 
 import {
   CreditCard, Wallet, Coins, Smartphone, Landmark,
-  Zap, Lock, Brain, CircleDollarSign, type LucideIcon,
+  Zap, Lock, Brain, CircleDollarSign, ShieldCheck, type LucideIcon,
 } from "lucide-react";
 
+// Must stay in sync with backend `gateway::create_gateway()` in
+// `crates/payment-service/src/gateway/mod.rs`. The single-word form
+// (e.g. "paypro", "authorize_net") is the canonical id.
 const GATEWAYS: { id: string; name: string; icon: LucideIcon }[] = [
   { id: "stripe", name: "Stripe", icon: CreditCard },
   { id: "paypal", name: "PayPal", icon: Wallet },
@@ -12,10 +15,11 @@ const GATEWAYS: { id: string; name: string; icon: LucideIcon }[] = [
   { id: "coinbase", name: "Coinbase", icon: Coins },
   { id: "flutterwave", name: "Flutterwave", icon: CircleDollarSign },
   { id: "razorpay", name: "Razorpay", icon: Wallet },
-  { id: "iyzipay", name: "Iyzipay", icon: CreditCard },
+  { id: "authorize_net", name: "Authorize.Net", icon: ShieldCheck },
+  { id: "iyzipay", name: "iyzipay", icon: CreditCard },
   { id: "cashfree", name: "CashFree", icon: Wallet },
   { id: "yoomoney", name: "YooMoney", icon: Wallet },
-  { id: "aamarpay", name: "Aamarpay", icon: CreditCard },
+  { id: "aamarpay", name: "aamarPay", icon: CreditCard },
   { id: "fortumo", name: "Fortumo", icon: Smartphone },
   { id: "2checkout", name: "2Checkout", icon: CreditCard },
   { id: "coinpayments", name: "CoinPayments", icon: Coins },
@@ -24,8 +28,8 @@ const GATEWAYS: { id: string; name: string; icon: LucideIcon }[] = [
   { id: "payfast", name: "PayFast", icon: Zap },
   { id: "paysera", name: "Paysera", icon: Wallet },
   { id: "securionpay", name: "SecurionPay", icon: Lock },
-  { id: "ngenius", name: "NGenius", icon: Brain },
-  { id: "paypro_bitcoin", name: "PayPro Bitcoin", icon: Coins },
+  { id: "ngenius", name: "N-Genius", icon: Brain },
+  { id: "paypro", name: "PayPro Bitcoin", icon: Coins },
 ];
 
 interface PaymentGatewaySelectorProps {

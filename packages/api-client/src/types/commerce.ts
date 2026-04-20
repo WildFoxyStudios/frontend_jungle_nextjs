@@ -67,6 +67,7 @@ export interface Funding {
   id: number;
   title: string;
   description: string;
+  category?: string;
   cover: string;
   goal_amount: number;
   raised_amount: number;

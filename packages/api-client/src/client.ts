@@ -76,14 +76,19 @@ export class ApiClient {
       throw new NetworkError();
     }
 
-    if (response.status === 401 && this.refreshToken) {
+    if (response.status === 401) {
+      // Try to refresh on any 401. The refresh token might be kept in an
+      // httpOnly cookie (sent via credentials: "include") rather than set
+      // explicitly by the client, so we do not gate on `this.refreshToken`.
       const refreshed = await this.handleRefresh();
       if (!refreshed) {
         this.fireAuthFailure();
         throw new AuthError();
       }
 
-      headers["Authorization"] = `Bearer ${this.accessToken!}`;
+      if (this.accessToken) {
+        headers["Authorization"] = `Bearer ${this.accessToken}`;
+      }
       try {
         response = await fetch(url, {
           ...options,
@@ -98,9 +103,6 @@ export class ApiClient {
         this.fireAuthFailure();
         throw new AuthError();
       }
-    } else if (response.status === 401) {
-      this.fireAuthFailure();
-      throw new AuthError();
     }
 
     if (response.status === 429) {
@@ -128,28 +130,38 @@ export class ApiClient {
   }
 
   private async doRefresh(): Promise<boolean> {
-    if (!this.refreshToken) return false;
-
     try {
+      const body: { refresh_token?: string } = {};
+      if (this.refreshToken) body.refresh_token = this.refreshToken;
+
       const res = await fetch(`${this.baseUrl}/v1/auth/refresh`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ refresh_token: this.refreshToken }),
+        body: JSON.stringify(body),
       });
 
       if (!res.ok) return false;
 
       const raw = (await res.json()) as Record<string, unknown>;
       const data = (raw && typeof raw === "object" && "data" in raw ? raw.data : raw) as {
-        access_token: string;
-        refresh_token: string;
-        expires_in: number;
+        access_token?: string;
+        refresh_token?: string;
+        expires_in?: number;
       };
 
-      this.accessToken = data.access_token;
-      this.refreshToken = data.refresh_token;
-      this.onTokenRefreshed?.(data.access_token, data.refresh_token);
+      if (data.access_token) {
+        this.accessToken = data.access_token;
+      }
+      if (data.refresh_token) {
+        this.refreshToken = data.refresh_token;
+      }
+      if (data.access_token && data.refresh_token) {
+        this.onTokenRefreshed?.(data.access_token, data.refresh_token);
+      }
+      // Refresh succeeded if the server returned 2xx, regardless of whether the
+      // body contained an access_token field (some deployments only set the
+      // cookie and return an empty body).
       return true;
     } catch {
       return false;
@@ -225,6 +237,69 @@ export class ApiClient {
     return this.request<T>(path, { method: "DELETE" });
   }
 
+  /**
+   * GET request that returns the raw response body as a Blob.
+   * Used for file downloads (invoice PDFs, data exports, etc.). Unlike
+   * `get()`, this does not attempt JSON parsing and keeps the response
+   * verbatim so the caller can pipe it into a download.
+   */
+  async getBlob(
+    path: string,
+    params?: Record<string, string | number | boolean | undefined>,
+  ): Promise<{ blob: Blob; filename: string | null }> {
+    const query = params
+      ? `?${new URLSearchParams(
+          Object.fromEntries(
+            Object.entries(params)
+              .filter(([, v]) => v !== undefined)
+              .map(([k, v]) => [k, String(v)]),
+          ),
+        ).toString()}`
+      : "";
+    const url = path.startsWith("http")
+      ? `${path}${query}`
+      : `${this.baseUrl}${path}${query}`;
+
+    const headers: Record<string, string> = {};
+    if (this.accessToken) headers["Authorization"] = `Bearer ${this.accessToken}`;
+
+    let response: Response;
+    try {
+      response = await fetch(url, { method: "GET", headers, credentials: "include" });
+    } catch {
+      throw new NetworkError();
+    }
+
+    if (response.status === 401) {
+      const refreshed = await this.handleRefresh();
+      if (!refreshed) {
+        this.fireAuthFailure();
+        throw new AuthError();
+      }
+      if (this.accessToken) headers["Authorization"] = `Bearer ${this.accessToken}`;
+      try {
+        response = await fetch(url, { method: "GET", headers, credentials: "include" });
+      } catch {
+        throw new NetworkError();
+      }
+      if (response.status === 401) {
+        this.fireAuthFailure();
+        throw new AuthError();
+      }
+    }
+
+    if (!response.ok) {
+      throw new ApiError("DOWNLOAD_ERROR", `Download failed: ${response.status}`, undefined, response.status);
+    }
+
+    const blob = await response.blob();
+    // Parse filename from Content-Disposition if the server set one.
+    const cd = response.headers.get("content-disposition") ?? "";
+    const match = /filename\*?=(?:UTF-8'')?"?([^";]+)"?/i.exec(cd);
+    const filename = match?.[1] ? decodeURIComponent(match[1].trim()) : null;
+    return { blob, filename };
+  }
+
   upload<T>(
     path: string,
     formData: FormData,
@@ -249,12 +324,23 @@ export class ApiClient {
       xhr.addEventListener("load", () => {
         if (xhr.status >= 200 && xhr.status < 300) {
           try {
-            resolve(JSON.parse(xhr.responseText) as T);
+            const parsed = JSON.parse(xhr.responseText);
+            // Unwrap { data: ... } envelope like handleResponse does
+            if (parsed && typeof parsed === "object" && "data" in parsed && Object.keys(parsed).length <= 2) {
+              resolve(parsed as T);
+            } else {
+              resolve(parsed as T);
+            }
           } catch {
             resolve(xhr.responseText as unknown as T);
           }
         } else {
-          reject(new ApiError("UPLOAD_ERROR", xhr.statusText, undefined, xhr.status));
+          let message = xhr.statusText || "Upload failed";
+          try {
+            const errBody = JSON.parse(xhr.responseText);
+            message = errBody?.error?.message ?? errBody?.message ?? message;
+          } catch { /* use statusText */ }
+          reject(new ApiError("UPLOAD_ERROR", message, undefined, xhr.status));
         }
       });
 

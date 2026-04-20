@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { groupsApi } from "@jungle/api-client";
@@ -13,7 +13,7 @@ export default function BoostedPagesPage() {
   useEffect(() => {
     groupsApi.getBoostedPages()
       .then((r) => setPages(r.data))
-      .catch(() => {})
+      .catch(() => { /* non-critical: failure is silent */ })
       .finally(() => setLoading(false));
   }, []);
 

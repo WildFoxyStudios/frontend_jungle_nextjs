@@ -1,4 +1,4 @@
-ï»¿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { authApi } from "@jungle/api-client";
@@ -14,7 +14,7 @@ export default function SessionsPage() {
   useEffect(() => {
     authApi.getSessions()
       .then(setSessions)
-      .catch(() => {})
+      .catch(() => { /* non-critical: failure is silent */ })
       .finally(() => setLoading(false));
   }, []);
 
@@ -51,7 +51,7 @@ export default function SessionsPage() {
                   {session.is_current && <Badge variant="default" className="text-xs">Current</Badge>}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {session.ip} Â· {session.location ?? "Unknown location"} Â· Last seen {new Date(session.last_seen).toLocaleDateString()}
+                  {session.ip} · {session.location ?? "Unknown location"} · Last seen {new Date(session.last_seen).toLocaleDateString()}
                 </p>
               </div>
             </div>

@@ -99,7 +99,7 @@ async function loadFFmpeg() {
 
   const ffmpeg = new FFmpeg();
 
-  const baseURL = "https://app.unpkg.com/@ffmpeg/core@0.12.6/files/dist/esm";
+  const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm";
   await ffmpeg.load({
     coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
     wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, "application/wasm"),

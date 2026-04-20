@@ -3,7 +3,7 @@
 import { useState, useRef } from "react";
 import { storiesApi } from "@jungle/api-client";
 import { Button, Input, Label, Progress } from "@jungle/ui";
-import { useMediaUpload } from "@jungle/hooks";
+import { useAdvancedMediaUpload } from "@/hooks/use-advanced-media-upload";
 import { toast } from "sonner";
 
 interface StoryCreatorProps {
@@ -13,24 +13,23 @@ interface StoryCreatorProps {
 export function StoryCreator({ onSuccess }: StoryCreatorProps) {
   const [file, setFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const { uploadImage, uploadVideo, progress, isUploading } = useMediaUpload();
+  const {
+    uploadProcessedMedia, isBusy, isProcessing, isUploading,
+    processingProgress, uploadProgress, compressionInfo,
+  } = useAdvancedMediaUpload();
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = async () => {
     if (!file) return;
     setIsLoading(true);
     try {
-      let mediaId: number | undefined;
-      if (file.type.startsWith("image/")) {
-        const media = await uploadImage(file, "story");
-        mediaId = media?.id;
-      } else {
-        const media = await uploadVideo(file);
-        mediaId = media?.id;
-      }
-      if (!mediaId) throw new Error("Upload failed");
+      const media = await uploadProcessedMedia(file, {
+        imageOptions: { maxWidth: 1080, maxSizeMB: 2 },
+        videoOptions: { maxDurationSec: 30, maxSizeMB: 30 },
+      });
+      if (!media) throw new Error("Upload failed");
       const fd = new FormData();
-      fd.append("media_id", String(mediaId));
+      fd.append("media_id", String(media.id));
       await storiesApi.createStory(fd);
       toast.success("Story shared!");
       onSuccess?.();
@@ -53,13 +52,33 @@ export function StoryCreator({ onSuccess }: StoryCreatorProps) {
         />
         {file && <p className="text-xs text-muted-foreground">{file.name}</p>}
       </div>
-      {isUploading && <Progress value={progress} className="h-1" />}
+      {isBusy && (
+        <div className="space-y-1">
+          {isProcessing && (
+            <div>
+              <p className="text-xs text-muted-foreground">Optimizing… {processingProgress}%</p>
+              <Progress value={processingProgress} className="h-1" />
+            </div>
+          )}
+          {isUploading && (
+            <div>
+              <p className="text-xs text-muted-foreground">
+                Uploading… {uploadProgress}%
+                {compressionInfo && compressionInfo.savedPercent > 0 && (
+                  <span className="text-green-600 ml-1">(saved {compressionInfo.savedPercent}%)</span>
+                )}
+              </p>
+              <Progress value={uploadProgress} className="h-1" />
+            </div>
+          )}
+        </div>
+      )}
       <Button
         onClick={handleSubmit}
-        disabled={!file || isLoading || isUploading}
+        disabled={!file || isLoading || isBusy}
         className="w-full"
       >
-        {isLoading || isUploading ? "Uploading…" : "Share story"}
+        {isBusy ? (isProcessing ? "Optimizing…" : "Uploading…") : "Share story"}
       </Button>
     </div>
   );

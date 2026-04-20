@@ -10,6 +10,8 @@ export interface Story {
   is_seen: boolean;
   expires_at: string;
   publisher: PublicUser;
+  /** Optional overlay text rendered above the story media. */
+  text?: string | null;
   created_at: string;
 }
 
@@ -17,6 +19,27 @@ export interface StoryGroup {
   user: PublicUser;
   stories: Story[];
   has_unseen: boolean;
+}
+
+export interface StoryHighlight {
+  id: number;
+  user_id: number;
+  title: string;
+  cover_url: string | null;
+  item_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface StoryHighlightItem {
+  item_id: number;
+  story_media_id: number;
+  media_type: string;
+  media_url: string;
+  thumbnail_url: string | null;
+  description: string;
+  duration: number | null;
+  added_at: string;
 }
 
 export interface Reel {
@@ -58,9 +81,13 @@ export interface Movie {
   thumbnail: string;
   video_url: string;
   genre: string;
+  country?: string;
   duration: number;
+  release_year?: number;
   is_featured: boolean;
   view_count: number;
+  like_count?: number;
+  comment_count?: number;
   created_at: string;
 }
 

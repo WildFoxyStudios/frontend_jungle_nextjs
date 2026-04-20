@@ -12,12 +12,18 @@ export interface AuthUser {
   is_admin: boolean;
   two_factor_enabled: boolean;
   email_verified: boolean;
+  /**
+   * `true` if the account has a local email+password credential. OAuth-only
+   * users should call `authApi.setSocialPassword` before `authApi.changePassword`.
+   */
+  has_password: boolean;
 }
 
 export interface User {
   id: number;
   uuid: string;
   username: string;
+  name: string;
   first_name: string;
   last_name: string;
   avatar: string;
@@ -29,12 +35,20 @@ export interface User {
   birthday?: string;
   website?: string;
   location?: string;
+  working?: string;
+  school?: string;
+  two_factor_enabled?: boolean;
+  email_verified?: boolean;
   is_verified: boolean;
-  is_pro: number; // 0 = free, 1+ = pro tier
+  is_pro: number;
   is_online: boolean;
   is_admin: boolean;
   is_banned: boolean;
   is_following?: boolean;
+  is_blocked?: boolean;
+  is_muted?: boolean;
+  open_to_work?: { title: string; skills: string[] } | null;
+  providing_service?: { title: string; description: string } | null;
   follower_count: number;
   following_count: number;
   post_count: number;

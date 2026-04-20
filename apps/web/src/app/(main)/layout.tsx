@@ -2,8 +2,12 @@ import type { ReactNode } from "react";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Header } from "@/components/layout/Header";
 import { MobileNav } from "@/components/layout/MobileNav";
-import { AnnouncementBanner } from "@/components/layout/AnnouncementBanner";
+import { RightSidebar } from "@/components/layout/RightSidebar";
+import { FloatingChat } from "@/components/chat/FloatingChat";
+import { IncomingCallBanner } from "@/components/chat/IncomingCallBanner";
 import { WebSocketProvider } from "@/providers/WebSocketProvider";
+import { GlobalKeyboardShortcuts } from "@/components/shared/GlobalKeyboardShortcuts";
+import { Footer } from "@/components/layout/Footer";
 
 export default function MainLayout({ children }: { children: ReactNode }) {
   return (
@@ -12,11 +16,19 @@ export default function MainLayout({ children }: { children: ReactNode }) {
         <Sidebar />
         <div className="flex-1 flex flex-col min-w-0">
           <Header />
-          <AnnouncementBanner />
-          <main className="flex-1 pb-16 md:pb-0">{children}</main>
+          <div className="flex flex-1 min-w-0">
+            <main className="flex-1 pb-16 md:pb-0 min-w-0">
+              {children}
+              <Footer />
+            </main>
+            <RightSidebar />
+          </div>
         </div>
       </div>
       <MobileNav />
+      <FloatingChat />
+      <IncomingCallBanner />
+      <GlobalKeyboardShortcuts />
     </WebSocketProvider>
   );
 }

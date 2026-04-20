@@ -8,6 +8,14 @@ export const eventsApi = {
     api.get<PaginatedResponse<Event>>("/v1/events/my", { cursor }),
   getAttending: (cursor?: string) =>
     api.get<PaginatedResponse<Event>>("/v1/events/attending", { cursor }),
+  getPastEvents: (cursor?: string) =>
+    api.get<PaginatedResponse<Event>>("/v1/events/past", { cursor }),
+  getGoingEvents: (cursor?: string) =>
+    api.get<PaginatedResponse<Event>>("/v1/events/going", { cursor }),
+  getInterestedEvents: (cursor?: string) =>
+    api.get<PaginatedResponse<Event>>("/v1/events/interested", { cursor }),
+  getInvitedEvents: (cursor?: string) =>
+    api.get<PaginatedResponse<Event>>("/v1/events/invited", { cursor }),
   getEvent: (id: number) => api.get<Event>(`/v1/events/${id}`),
   createEvent: (data: Partial<Event> & { title: string }) =>
     api.post<Event>("/v1/events", data),

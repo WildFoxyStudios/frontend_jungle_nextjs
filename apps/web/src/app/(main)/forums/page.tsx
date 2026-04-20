@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { contentApi } from "@jungle/api-client";
@@ -14,7 +14,7 @@ export default function ForumsPage() {
   useEffect(() => {
     contentApi.getForumSections()
       .then(setSections)
-      .catch(() => {})
+      .catch(() => { /* non-critical: failure is silent */ })
       .finally(() => setLoading(false));
   }, []);
 

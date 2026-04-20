@@ -1,8 +1,7 @@
 ﻿"use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { usersApi } from "@jungle/api-client";
-import { useMediaUpload } from "@jungle/hooks";
 import { Button, Progress } from "@jungle/ui";
 import { Camera } from "lucide-react";
 import { toast } from "sonner";
@@ -13,21 +12,24 @@ interface CoverUploadProps {
 
 export function CoverUpload({ onSuccess }: CoverUploadProps) {
   const fileRef = useRef<HTMLInputElement>(null);
-  const { uploadImage, progress, isUploading } = useMediaUpload();
+  const [isUploading, setIsUploading] = useState(false);
 
   const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    setIsUploading(true);
     try {
-      const media = await uploadImage(file, "cover");
-      if (!media) throw new Error("Upload failed");
+      const { compressImage } = await import("@jungle/utils");
+      const compressed = await compressImage(file, "cover");
       const formData = new FormData();
-      formData.append("cover_url", media.url);
+      formData.append("cover", compressed);
       const res = await usersApi.updateCover(formData);
       onSuccess(res.cover);
       toast.success("Cover photo updated");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to update cover");
+    } finally {
+      setIsUploading(false);
     }
     e.target.value = "";
   };
@@ -43,7 +45,7 @@ export function CoverUpload({ onSuccess }: CoverUploadProps) {
       />
       {isUploading && (
         <div className="w-32">
-          <Progress value={progress} className="h-1" />
+          <Progress value={50} className="h-1" />
         </div>
       )}
       <Button

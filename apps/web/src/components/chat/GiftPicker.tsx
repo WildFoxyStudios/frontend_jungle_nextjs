@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import { messagesApi } from "@jungle/api-client";
 import type { Gift } from "@jungle/api-client";
 import { ScrollArea } from "@jungle/ui";
@@ -14,7 +13,7 @@ export function GiftPicker({ onSelect }: GiftPickerProps) {
   const [gifts, setGifts] = useState<Gift[]>([]);
 
   useEffect(() => {
-    messagesApi.getGifts().then((gifts) => setGifts(gifts)).catch(() => {});
+    messagesApi.getGifts().then((gifts) => setGifts(gifts)).catch(() => { /* non-critical: failure is silent */ });
   }, []);
 
   return (
@@ -26,7 +25,7 @@ export function GiftPicker({ onSelect }: GiftPickerProps) {
             onClick={() => onSelect(gift)}
             className="flex flex-col items-center gap-1 p-2 rounded hover:bg-muted"
           >
-            <Image src={gift.image} alt={gift.name} width={40} height={40} />
+            <img src={gift.image} alt={gift.name} className="w-10 h-10 object-contain" />
             <span className="text-xs text-muted-foreground">{gift.price}</span>
           </button>
         ))}

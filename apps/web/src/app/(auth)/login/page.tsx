@@ -15,6 +15,7 @@ import {
   CardDescription, Separator,
 } from "@jungle/ui";
 import { toast } from "sonner";
+import { SocialLoginButtons } from "@/components/auth/SocialLoginButtons";
 
 type LoginForm = z.infer<typeof loginSchema>;
 
@@ -93,6 +94,8 @@ export default function LoginPage() {
         </div>
 
         <Separator />
+
+        <SocialLoginButtons />
 
         <p className="text-center text-sm text-muted-foreground">
           {t("noAccount")}{" "}

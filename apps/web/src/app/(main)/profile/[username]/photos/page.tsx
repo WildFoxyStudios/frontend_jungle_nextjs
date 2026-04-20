@@ -1,9 +1,9 @@
 ﻿"use client";
 
 import { use, useEffect, useState } from "react";
-import Image from "next/image";
 import { postsApi } from "@jungle/api-client";
 import { Skeleton } from "@jungle/ui";
+import { toast } from "sonner";
 
 interface Props { params: Promise<{ username: string }> }
 
@@ -21,7 +21,7 @@ export default function PhotosPage({ params }: Props) {
         );
         setPhotos(imgs);
       })
-      .catch(() => {})
+      .catch((err) => toast.error(err instanceof Error ? err.message : "Failed to load photos"))
       .finally(() => setLoading(false));
   }, [username]);
 
@@ -32,7 +32,7 @@ export default function PhotosPage({ params }: Props) {
         <div className="grid grid-cols-3 gap-1">
           {photos.map((p) => (
             <div key={p.id} className="relative aspect-square bg-muted rounded overflow-hidden">
-              <Image src={p.url} alt="" fill className="object-cover" />
+              <img src={p.url} alt="" className="absolute inset-0 w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
             </div>
           ))}
           {photos.length === 0 && <p className="col-span-3 text-muted-foreground text-sm">No photos yet.</p>}

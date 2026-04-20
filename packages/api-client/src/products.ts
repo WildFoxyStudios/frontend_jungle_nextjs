@@ -1,8 +1,8 @@
-﻿import { api } from "./client";
+import { api } from "./client";
 import type { Product, ProductReview, PaginatedResponse } from "./types/index";
 
 export const productsApi = {
-  getProducts: (cursor?: string, filters?: { category?: string; q?: string; lat?: number; lng?: number }) =>
+  getProducts: (cursor?: string, filters?: { category?: string; q?: string; lat?: number; lng?: number; distance?: number; price_sort?: 'latest' | 'price_low' | 'price_high' }) =>
     api.get<PaginatedResponse<Product>>("/v1/products", { cursor, ...filters }),
   getProduct: (id: number) => api.get<Product>(`/v1/products/${id}`),
   createProduct: (data: FormData, onProgress?: (pct: number) => void) =>

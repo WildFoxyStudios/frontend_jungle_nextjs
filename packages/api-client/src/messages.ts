@@ -56,8 +56,22 @@ export const messagesApi = {
   getCall: (id: number) => api.get<unknown>(`/v1/calls/${id}`),
   updateCallStatus: (id: number, status: string) =>
     api.put<void>(`/v1/calls/${id}/status`, { status }),
-  generateAgoraToken: (data: { channel: string; uid?: number; call_id?: number }) =>
-    api.post<{ token: string }>("/v1/calls/agora-token", data),
+  generateAgoraToken: (data: { channel_name: string; call_id?: number }) =>
+    api.post<{
+      token: string;
+      app_id: string;
+      channel: string;
+      uid: number;
+      expire_ts: number;
+    }>("/v1/calls/agora-token", data),
+  generateAgoraViewerToken: (data: { channel_name: string }) =>
+    api.post<{
+      token: string;
+      app_id: string;
+      channel: string;
+      uid: number;
+      expire_ts: number;
+    }>("/v1/calls/viewer-token", data),
   getBroadcasts: (cursor?: string) =>
     api.get<PaginatedResponse<Conversation>>("/v1/broadcasts", { cursor }),
   createBroadcast: (data: { name: string; member_ids: number[] }) =>
@@ -72,4 +86,12 @@ export const messagesApi = {
     api.delete<void>(`/v1/broadcasts/${id}/members/${userId}`),
   sendBroadcast: (id: number, message: string) =>
     api.post<void>(`/v1/broadcasts/${id}/send`, { message }),
+  getConversationMedia: (id: number, cursor?: string) =>
+    api.get<PaginatedResponse<Message>>(`/v1/conversations/${id}/media`, { cursor }),
+  getConversationPinnedMessages: (id: number) =>
+    api.get<Message[]>(`/v1/conversations/${id}/pinned-messages`),
+  getStarredMessages: (cursor?: string) =>
+    api.get<PaginatedResponse<Message>>("/v1/messages/favorites", { cursor }),
+  searchConversationMessages: (id: number, q: string, cursor?: string) =>
+    api.get<PaginatedResponse<Message>>(`/v1/conversations/${id}/search`, { q, cursor }),
 };
