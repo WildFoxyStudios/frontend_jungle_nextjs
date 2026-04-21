@@ -51,7 +51,7 @@ export default function SessionsPage() {
                   {session.is_current && <Badge variant="default" className="text-xs">Current</Badge>}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {session.ip} · {session.location ?? "Unknown location"} · Last seen {new Date(session.last_seen).toLocaleDateString()}
+                  {session.ip} Â· {session.location ?? "Unknown location"} Â· Last seen {new Date(session.last_seen).toLocaleDateString()}
                 </p>
               </div>
             </div>

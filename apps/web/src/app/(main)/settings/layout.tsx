@@ -27,6 +27,7 @@ const SETTINGS_NAV = [
   { href: "/settings/payments", key: "payments" },
   { href: "/settings/transactions", key: "transactions" },
   { href: "/settings/verification", key: "verification" },
+  { href: "/settings/information", key: "information" },
   { href: "/settings/open-to-work", key: "openToWork" },
   { href: "/settings/delete-account", key: "deleteAccount" },
 ];

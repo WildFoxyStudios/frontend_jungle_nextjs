@@ -28,9 +28,19 @@ export default function DeleteAccountPage() {
   const handleDownload = async () => {
     setDownloading(true);
     try {
-      const res = await usersApi.downloadMyInfo();
-      window.open(res.download_url, "_blank");
-      toast.success("Your data export is ready");
+      const res = await usersApi.downloadMyInfo(["my_information", "posts", "pages", "groups", "followers", "following", "friends"]);
+      if (res.data) {
+        const dataStr = JSON.stringify(res.data, null, 2);
+        const dataBlob = new Blob([dataStr], { type: "application/json" });
+        const url = URL.createObjectURL(dataBlob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "my-information.json";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast.success("Your data export is ready");
+      }
     } catch {
       toast.error("Failed to export data");
     } finally {

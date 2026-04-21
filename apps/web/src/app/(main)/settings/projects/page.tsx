@@ -78,7 +78,7 @@ export default function ProjectsSettingsPage() {
             </div>
             <div className="flex gap-2">
               <Button onClick={handleAdd} disabled={isLoading || !form.title.trim()}>
-                {isLoading ? "Adding…" : "Add"}
+                {isLoading ? "Addingâ€¦" : "Add"}
               </Button>
               <Button variant="ghost" onClick={() => setIsAdding(false)}>Cancel</Button>
             </div>

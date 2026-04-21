@@ -13,6 +13,7 @@ import {
   CardDescription, GatewaySelect,
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger
 } from "@jungle/ui";
+import { BankReceiptDialog } from "@/components/payment/BankReceiptDialog";
 import {
   Wallet as WalletIcon, ArrowUpRight, ArrowDownLeft,
   History, DollarSign, Send, CreditCard, Landmark, Clock, Gift
@@ -26,6 +27,7 @@ export default function WalletPage() {
   const [loading, setLoading] = useState(true);
   const [topUpAmount, setTopUpAmount] = useState("");
   const [topUpGateway, setTopUpGateway] = useState<string>("stripe");
+  const [showBankReceipt, setShowBankReceipt] = useState(false);
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const t = useTranslations("payments");
   const tc = useTranslations("common");
@@ -52,6 +54,12 @@ export default function WalletPage() {
     const amount = parseFloat(topUpAmount);
     if (!amount || amount <= 0) return toast.error(t("validAmount"));
     if (!topUpGateway) return toast.error(t("validAmount"));
+
+    if (topUpGateway === "bank_transfer") {
+      setShowBankReceipt(true);
+      return;
+    }
+
     try {
       const res = await paymentsApi.addFunds(amount, topUpGateway);
       if (res.redirect_url) {
@@ -247,6 +255,12 @@ export default function WalletPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <BankReceiptDialog 
+        open={showBankReceipt} 
+        onOpenChange={setShowBankReceipt} 
+        amount={parseFloat(topUpAmount) || 0} 
+      />
     </div>
   );
 }

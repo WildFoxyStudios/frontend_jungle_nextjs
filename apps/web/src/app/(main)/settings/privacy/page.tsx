@@ -98,7 +98,7 @@ export default function PrivacySettingsPage() {
         </div>
 
         <Button onClick={handleSave} disabled={saving} className="w-full">
-          {saving ? "Saving…" : "Save Privacy Settings"}
+          {saving ? "Savingâ€¦" : "Save Privacy Settings"}
         </Button>
       </CardContent>
     </Card>

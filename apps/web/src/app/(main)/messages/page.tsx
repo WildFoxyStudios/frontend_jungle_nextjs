@@ -73,7 +73,7 @@ export default function MessagesPage() {
         <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search conversations…"
+          placeholder="Search conversationsâ€¦"
           className="pl-9"
         />
       </div>

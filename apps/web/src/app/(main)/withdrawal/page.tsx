@@ -98,7 +98,7 @@ export default function WithdrawalPage() {
               {errors.account_details && <p className="text-xs text-destructive">{errors.account_details.message}</p>}
             </div>
             <Button type="submit" disabled={isSubmitting} className="w-full">
-              {isSubmitting ? "Submitting…" : "Request Withdrawal"}
+              {isSubmitting ? "Submittingâ€¦" : "Request Withdrawal"}
             </Button>
           </form>
         </CardContent>

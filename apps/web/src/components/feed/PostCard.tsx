@@ -170,6 +170,14 @@ export function PostCard({ post, showGroupInfo, onDelete }: PostCardProps) {
   });
 
   const audioMedia = validMedia.filter((m) => m.type === "audio");
+  if (post.post_type === "audio" && post.media_url) {
+    audioMedia.push({
+      id: 0,
+      url: post.media_url,
+      type: "audio",
+      name: "Voice Note"
+    });
+  }
   const fileMedia = validMedia.filter((m) => m.type === "file");
 
   const lightboxMedia = imageVideoMedia.map((item) => {

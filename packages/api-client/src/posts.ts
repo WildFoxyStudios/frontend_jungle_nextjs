@@ -78,4 +78,10 @@ export const postsApi = {
       `/v1/posts/${id}/reactors`,
       { type: reactionType, cursor }
     ),
+  createAudioPost: (formData: FormData) =>
+    api.post<Post>("/v1/posts/audio", formData),
+  createFunding: (data: { title: string; description?: string; goal_amount: number; image?: string }) =>
+    api.post<any>("/v1/funding", data),
+  createJob: (data: any) => api.post<any>("/v1/jobs", data),
+  createOffer: (data: any) => api.post<any>("/v1/offers", data),
 };

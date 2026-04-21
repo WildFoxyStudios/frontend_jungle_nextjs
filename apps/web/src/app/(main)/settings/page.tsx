@@ -138,9 +138,17 @@ export default function SettingsPage() {
             onClick={async () => {
               setExporting(true);
               try {
-                const res = await usersApi.downloadMyInfo();
-                if (res.download_url) {
-                  window.open(res.download_url, "_blank");
+                const res = await usersApi.downloadMyInfo(["my_information", "posts", "pages", "groups", "followers", "following", "friends"]);
+                if (res.data) {
+                  const dataStr = JSON.stringify(res.data, null, 2);
+                  const dataBlob = new Blob([dataStr], { type: "application/json" });
+                  const url = URL.createObjectURL(dataBlob);
+                  const link = document.createElement("a");
+                  link.href = url;
+                  link.download = "my-information.json";
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
                 } else {
                   toast.success(te("exportPrepared"));
                 }

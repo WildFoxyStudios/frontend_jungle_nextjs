@@ -1,4 +1,4 @@
-﻿import { api } from "./client";
+import { api } from "./client";
 import type { User, PublicUser, PaginatedResponse, CustomProfileField, UserExperience, UserCertification, UserSkill, UserProject } from "./types/index";
 
 export interface ProfessionalSearchResult {
@@ -94,7 +94,6 @@ export const usersApi = {
     }>(`/v1/users/${username}/popover`),
   onboardingSkip: (step: "avatar" | "info" | "follow") =>
     api.post<{ skipped: string }>("/v1/users/me/onboarding/skip", { step }),
-  downloadMyInfo: () => api.post<{ download_url: string }>("/v1/users/me/download-info"),
   requestVerification: (formData: FormData) => api.upload<void>("/v1/users/me/verification-request", formData),
   deleteMe: () => api.delete<void>("/v1/users/me"),
   updateSocialLinks: (links: {
@@ -110,6 +109,8 @@ export const usersApi = {
   deleteProject: (id: number) => api.delete<void>(`/v1/users/me/projects/${id}`),
   updateLocation: (lat: number, lng: number) =>
     api.put<void>("/v1/users/me/location", { lat, lng }),
+  downloadMyInfo: (data: string[]) =>
+    api.post<any>("/v1/users/me/download-info", { data }),
   getNearbyUsers: (lat: number, lng: number, radius?: number) =>
     api.get<PublicUser[]>("/v1/users/nearby", { lat, lng, radius }),
   getNotificationSettings: () => api.get<Record<string, unknown>>("/v1/users/me/notification-settings"),

@@ -1,4 +1,4 @@
-﻿import { api } from "./client";
+import { api } from "./client";
 import type { Order, Cart, Funding, Offer, PaginatedResponse } from "./types/index";
 
 export const commerceApi = {

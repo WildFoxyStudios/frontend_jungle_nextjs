@@ -11,9 +11,10 @@ interface MessageBubbleProps {
   message: Message;
   onDelete?: (id: number) => void;
   onReact?: (id: number, reaction: string) => void;
+  color?: string;
 }
 
-export function MessageBubble({ message, onDelete, onReact }: MessageBubbleProps) {
+export function MessageBubble({ message, onDelete, onReact, color }: MessageBubbleProps) {
   const { user } = useAuthStore();
   const isMine = user?.id === message.sender_id;
   const [showActions, setShowActions] = useState(false);
@@ -29,9 +30,16 @@ export function MessageBubble({ message, onDelete, onReact }: MessageBubbleProps
       <div className="relative">
         <div
           className={`max-w-[70%] rounded-2xl px-3 py-2 text-sm ${
-            isMine ? "bg-primary text-primary-foreground rounded-br-sm" : "bg-muted rounded-bl-sm"
+            isMine ? "text-primary-foreground rounded-br-sm" : "bg-muted rounded-bl-sm text-foreground"
           }`}
+          style={isMine ? { backgroundColor: color || "var(--primary)" } : {}}
         >
+          {message.reply_to && (
+            <div className="mb-2 p-2 rounded-lg bg-black/10 border-l-4 border-white/30 text-[10px] opacity-80 line-clamp-2 italic">
+              <span className="font-bold block mb-0.5">{message.reply_to.sender?.first_name}:</span>
+              {message.reply_to.content || "Media content"}
+            </div>
+          )}
           {message.message_type === "text" && <p>{message.content}</p>}
           {message.message_type === "image" && message.media[0] && (
             <img src={message.media[0].url} alt="" className="w-48 h-48 rounded object-cover" />

@@ -15,6 +15,7 @@ import {
 import {
   Image as ImageIcon, Film, X, Smile, MapPin, Palette, BarChart3, Paperclip,
   Clock, Music, FileText, Volume2, Loader2, Sparkles, Mic, ShoppingBag, PlusCircle,
+  Square, HandCoins, Briefcase, Tag
 } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
@@ -22,6 +23,9 @@ import { EmojiPicker } from "@/components/shared/EmojiPicker";
 import { GifPicker } from "@/components/shared/GifPicker";
 import { MentionSuggestions, detectMention } from "@/components/shared/MentionSuggestions";
 import { AiWriterDialog } from "@/components/shared/AiWriterDialog";
+import { FundingCreationDialog } from "./post-types/FundingCreationDialog";
+import { JobCreationDialog } from "./post-types/JobCreationDialog";
+import { OfferCreationDialog } from "./post-types/OfferCreationDialog";
 
 interface PostComposerProps {
   groupId?: number;
@@ -55,6 +59,14 @@ export function PostComposer({ groupId, pageId, onSuccess }: PostComposerProps) 
   const [scheduledAt, setScheduledAt] = useState("");
   const [showScheduler, setShowScheduler] = useState(false);
   const [showAiWriter, setShowAiWriter] = useState(false);
+  const [showFunding, setShowFunding] = useState(false);
+  const [showJob, setShowJob] = useState(false);
+  const [showOffer, setShowOffer] = useState(false);
+  const [recording, setRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -153,6 +165,48 @@ export function PostComposer({ groupId, pageId, onSuccess }: PostComposerProps) 
     if (!file) return;
     const key = addLocalMedia(file, "audio");
     uploadFile(file, "audio", key);
+  };
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      audioChunksRef.current = [];
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunksRef.current.push(e.data);
+      };
+      mediaRecorder.onstop = async () => {
+        stream.getTracks().forEach((t) => t.stop());
+        const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+        const file = new File([blob], `voice-${Date.now()}.webm`, { type: "audio/webm" });
+        setIsLoading(true);
+        try {
+          const formData = new FormData();
+          formData.append("audio", file);
+          formData.append("text", content);
+          await postsApi.createAudioPost(formData);
+          toast.success(tp("published"));
+          resetForm();
+          onSuccess?.({ id: Date.now() } as any); // Optimistic success
+        } catch { toast.error(tp("failed")); }
+        setIsLoading(false);
+      };
+      mediaRecorderRef.current = mediaRecorder;
+      mediaRecorder.start();
+      setRecording(true);
+      setRecordingTime(0);
+      recordingTimerRef.current = setInterval(() => setRecordingTime((t) => t + 1), 1000);
+      setIsExpanded(true);
+    } catch {
+      toast.error("Microphone access denied");
+    }
+  };
+
+  const stopRecording = () => {
+    mediaRecorderRef.current?.stop();
+    setRecording(false);
+    if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
+    setRecordingTime(0);
   };
 
   const handleGifSelect = (gifUrl: string) => {
@@ -459,8 +513,17 @@ export function PostComposer({ groupId, pageId, onSuccess }: PostComposerProps) 
                   <Button variant="ghost" size="sm" title={tp("attachFile")} type="button" onClick={() => fileInputRef.current?.click()} disabled={isBusy}>
                     <FileText className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="sm" title={tp("voiceNote")} type="button" className="text-red-500 hover:bg-red-50" onClick={() => toast.info(tc("comingSoon"))}>
-                    <Mic className="h-4 w-4" />
+                  <Button
+                    variant={recording ? "destructive" : "ghost"}
+                    size="sm"
+                    title={tp("voiceNote")}
+                    type="button"
+                    className={recording ? "animate-pulse" : "text-red-500 hover:bg-red-50"}
+                    onClick={recording ? stopRecording : startRecording}
+                    disabled={isBusy}
+                  >
+                    {recording ? <Square className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                    {recording && <span className="ml-2 font-mono text-xs">{Math.floor(recordingTime / 60).toString().padStart(2, '0')}:{(recordingTime % 60).toString().padStart(2, '0')}</span>}
                   </Button>
                   <Button variant="ghost" size="sm" title={tp("sellProduct")} asChild>
                     <Link href="/marketplace/create">
@@ -472,6 +535,15 @@ export function PostComposer({ groupId, pageId, onSuccess }: PostComposerProps) 
                   </Button>
                   <Button variant="ghost" size="sm" title={tp("aiWriter")} type="button" onClick={() => setShowAiWriter(true)} className="text-primary">
                     <Sparkles className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="sm" title={tp("funding")} type="button" onClick={() => setShowFunding(true)} className="text-emerald-600">
+                    <HandCoins className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="sm" title={tp("jobs")} type="button" onClick={() => setShowJob(true)} className="text-blue-600">
+                    <Briefcase className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="sm" title={tp("offers")} type="button" onClick={() => setShowOffer(true)} className="text-purple-600">
+                    <Tag className="h-4 w-4" />
                   </Button>
                   <Select value={privacy} onValueChange={(v) => setPrivacy(v as typeof privacy)}>
                     <SelectTrigger className="h-8 w-28 text-xs">
@@ -500,11 +572,14 @@ export function PostComposer({ groupId, pageId, onSuccess }: PostComposerProps) 
           </div>
         </div>
       </CardContent>
-    <AiWriterDialog
+      <AiWriterDialog
         open={showAiWriter}
         onClose={() => setShowAiWriter(false)}
         onInsertText={(text) => { setContent((prev) => prev ? prev + "\n" + text : text); setIsExpanded(true); }}
       />
+      <FundingCreationDialog open={showFunding} onOpenChange={setShowFunding} onSuccess={() => { resetForm(); onSuccess?.({ id: Date.now() } as any); }} />
+      <JobCreationDialog open={showJob} onOpenChange={setShowJob} onSuccess={() => { resetForm(); onSuccess?.({ id: Date.now() } as any); }} />
+      <OfferCreationDialog open={showOffer} onOpenChange={setShowOffer} onSuccess={() => { resetForm(); onSuccess?.({ id: Date.now() } as any); }} />
     </Card>
   );
 }
@@ -547,9 +622,8 @@ function FeelingPicker({ value, onChange }: { value: string; onChange: (v: strin
               key={f.label}
               type="button"
               onClick={() => { onChange(`${f.emoji} ${t("feelings." + f.label)}`); setOpen(false); }}
-              className={`flex flex-col items-center gap-0.5 p-1.5 rounded text-xs hover:bg-muted transition-colors ${
-                value.includes(f.label) ? "bg-primary/10 ring-1 ring-primary" : ""
-              }`}
+              className={`flex flex-col items-center gap-0.5 p-1.5 rounded text-xs hover:bg-muted transition-colors ${value.includes(f.label) ? "bg-primary/10 ring-1 ring-primary" : ""
+                }`}
             >
               <span className="text-lg">{f.emoji}</span>
               <span className="truncate w-full text-center text-[10px]">{t("feelings." + f.label)}</span>

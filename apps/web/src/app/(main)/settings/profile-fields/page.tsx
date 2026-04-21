@@ -63,7 +63,7 @@ export default function ProfileFieldsPage() {
           </div>
         ))}
         <Button onClick={handleSave} disabled={saving} className="w-full">
-          {saving ? "Saving…" : "Save Fields"}
+          {saving ? "Savingâ€¦" : "Save Fields"}
         </Button>
       </CardContent>
     </Card>

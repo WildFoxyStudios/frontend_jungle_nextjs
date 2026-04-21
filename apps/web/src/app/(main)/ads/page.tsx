@@ -26,7 +26,7 @@ export default function AdsPage() {
               <CardContent className="p-4 flex items-center justify-between">
                 <div>
                   <p className="font-semibold">{ad.name}</p>
-                  <p className="text-sm text-muted-foreground">{ad.impressions} impressions · {ad.clicks} clicks</p>
+                  <p className="text-sm text-muted-foreground">{ad.impressions} impressions Â· {ad.clicks} clicks</p>
                 </div>
                 <Button variant="outline" size="sm" asChild><Link href={`/ads/${ad.id}/stats`}>Stats</Link></Button>
               </CardContent>

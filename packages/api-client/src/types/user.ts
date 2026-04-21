@@ -79,7 +79,9 @@ export type PublicUser = Pick<
   | "is_verified"
   | "is_online"
   | "is_pro"
->;
+> & {
+  distance_km?: number;
+};
 
 export interface UserSession {
   id: string;

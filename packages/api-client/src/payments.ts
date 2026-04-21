@@ -44,8 +44,8 @@ export const paymentsApi = {
   getMySubscriptions: () => api.get<CreatorTier[]>("/v1/payments/creator/subscriptions"),
   getCreatorSubscribers: (cursor?: string) =>
     api.get<PaginatedResponse<unknown>>("/v1/payments/creator/subscribers", { cursor }),
-  uploadBankReceipt: (formData: FormData) =>
-    api.upload<void>("/v1/payments/bank-receipt", formData),
+  uploadBankReceipt: (data: { price: number; description?: string; mode: string; receipt_file: string }) =>
+    api.post<{ id: number; message: string }>("/v1/payments/bank-receipt", data),
   createCreatorTier: (data: { name: string; description: string; price: number; currency: string }) =>
     api.post<CreatorTier>("/v1/payments/creator/tiers", data),
   updateCreatorTier: (id: number, data: Partial<{ name: string; description: string; price: number }>) =>

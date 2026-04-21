@@ -99,7 +99,7 @@ export default function MonetizationSettingsPage() {
                 </div>
               </div>
               <div className="flex gap-2">
-                <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Creating…" : "Create Tier"}</Button>
+                <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Creatingâ€¦" : "Create Tier"}</Button>
                 <Button type="button" variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
               </div>
             </form>

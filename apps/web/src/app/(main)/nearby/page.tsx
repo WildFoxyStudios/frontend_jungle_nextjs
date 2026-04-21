@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
@@ -165,8 +165,13 @@ export default function NearbyPage() {
                     </p>
                     <p className="text-xs text-muted-foreground">@{u.username}</p>
                   </div>
+                  {u.distance_km !== undefined && (
+                    <div className="text-xs text-muted-foreground shrink-0 tabular-nums">
+                      {u.distance_km.toFixed(1)} km
+                    </div>
+                  )}
                   {u.is_online && (
-                    <div className="h-2.5 w-2.5 rounded-full bg-green-500 shrink-0" />
+                    <div className="h-2.5 w-2.5 rounded-full bg-green-500 shrink-0 ml-2" />
                   )}
                 </Link>
               ))

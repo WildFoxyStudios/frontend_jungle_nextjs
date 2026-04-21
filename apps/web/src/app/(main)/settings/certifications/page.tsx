@@ -105,7 +105,7 @@ export default function CertificationsPage() {
                 {errors.credential_url && <p className="text-xs text-destructive">{errors.credential_url.message}</p>}
               </div>
               <div className="flex gap-2">
-                <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Saving…" : "Save"}</Button>
+                <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Savingâ€¦" : "Save"}</Button>
                 <Button type="button" variant="outline" onClick={() => { setShowForm(false); reset(); }}>Cancel</Button>
               </div>
             </form>
@@ -127,7 +127,7 @@ export default function CertificationsPage() {
               <p className="font-semibold">{cert.name}</p>
               <p className="text-sm text-muted-foreground">{cert.issuer}</p>
               <p className="text-xs text-muted-foreground">
-                Issued {cert.issue_date}{cert.expiry_date ? ` · Expires ${cert.expiry_date}` : ""}
+                Issued {cert.issue_date}{cert.expiry_date ? ` Â· Expires ${cert.expiry_date}` : ""}
               </p>
               {cert.credential_id && <p className="text-xs text-muted-foreground">ID: {cert.credential_id}</p>}
               {cert.credential_url && (

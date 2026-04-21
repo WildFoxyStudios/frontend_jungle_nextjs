@@ -82,7 +82,7 @@ export default function NotificationSettingsPage() {
           </div>
         ))}
         <Button onClick={handleSave} disabled={saving} className="w-full mt-4">
-          {saving ? "Saving…" : "Save Preferences"}
+          {saving ? "Savingâ€¦" : "Save Preferences"}
         </Button>
       </CardContent>
     </Card>

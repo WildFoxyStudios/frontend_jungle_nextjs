@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { messagesApi } from "@jungle/api-client";
@@ -7,13 +7,14 @@ import { useRealtimeStore, useAuthStore, useOnlineUsers } from "@jungle/hooks";
 import { useAdvancedMediaUpload } from "@/hooks/use-advanced-media-upload";
 import { Button, Input, ScrollArea, Avatar, AvatarImage, AvatarFallback, Popover, PopoverContent, PopoverTrigger } from "@jungle/ui";
 import { toast } from "sonner";
-import { Send, Image as ImageIcon, Paperclip, Search, Mic, Square, Phone, Video, ArrowLeft, Smile, Gift, PanelRight } from "lucide-react";
+import { Palette, Send, Image as ImageIcon, Paperclip, Search, Mic, Square, Phone, Video, ArrowLeft, Smile, Gift, PanelRight } from "lucide-react";
 import { MessageBubble } from "./MessageBubble";
 import { ChatSidebarTabs } from "./ChatSidebarTabs";
 import { TypingIndicator } from "./TypingIndicator";
 import { EmojiPicker } from "@/components/shared/EmojiPicker";
 import { GiftPicker } from "./GiftPicker";
 import { StickerPicker } from "./StickerPicker";
+import { ChatColorPicker } from "./ChatColorPicker";
 import type { Gift as GiftType, Sticker } from "@jungle/api-client";
 import { resolveAvatarUrl } from "@/lib/avatar";
 import Link from "next/link";
@@ -43,12 +44,16 @@ export function ChatWindow({ conversationId }: ChatWindowProps) {
   const [stickerOpen, setStickerOpen] = useState(false);
   const [giftOpen, setGiftOpen] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
+  const [chatColor, setChatColor] = useState<string | undefined>(undefined);
 
   const isTyping = (typingUsers.get(conversationId)?.length ?? 0) > 0;
 
   useEffect(() => {
     messagesApi.getConversation(conversationId)
-      .then(setConversation)
+      .then((c) => {
+        setConversation(c);
+        setChatColor(c.color);
+      })
       .catch(() => toast.error("Failed to load conversation"));
     messagesApi.getMessages(conversationId)
       .then((r) => {
@@ -214,137 +219,158 @@ export function ChatWindow({ conversationId }: ChatWindowProps) {
   return (
     <div className="flex h-full">
       <div className="flex flex-col flex-1 min-w-0 h-full">
-      {/* Chat header */}
-      <div className="flex items-center gap-3 px-4 py-2.5 border-b bg-background shrink-0">
-        <Link href="/messages" className="lg:hidden">
-          <ArrowLeft className="h-4 w-4" />
-        </Link>
-        <div className="relative">
-          <Avatar className="h-9 w-9">
-            <AvatarImage src={resolveAvatarUrl(conversation?.avatar ?? other?.avatar)} />
-            <AvatarFallback>{chatTitle[0]}</AvatarFallback>
-          </Avatar>
-          {isOtherOnline && (
-            <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-green-500 border-2 border-background" />
-          )}
+        {/* Chat header */}
+        <div className="flex items-center gap-3 px-4 py-2.5 border-b bg-background shrink-0">
+          <Link href="/messages" className="lg:hidden">
+            <ArrowLeft className="h-4 w-4" />
+          </Link>
+          <div className="relative">
+            <Avatar className="h-9 w-9">
+              <AvatarImage src={resolveAvatarUrl(conversation?.avatar ?? other?.avatar)} />
+              <AvatarFallback>{chatTitle[0]}</AvatarFallback>
+            </Avatar>
+            {isOtherOnline && (
+              <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-green-500 border-2 border-background" />
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold truncate">{chatTitle}</p>
+            <p className="text-xs text-muted-foreground">{isOtherOnline ? "Online" : "Offline"}</p>
+          </div>
+          <div className="flex gap-1">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8" title="Change chat color">
+                  <Palette className="h-4 w-4" style={{ color: chatColor }} />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent side="bottom" className="w-auto p-0">
+                <ChatColorPicker
+                  currentColor={chatColor}
+                  onSelect={async (color) => {
+                    setChatColor(color);
+                    try {
+                      await messagesApi.updateConversationColor(conversationId, color);
+                    } catch {
+                      toast.error("Failed to update chat color");
+                    }
+                  }}
+                />
+              </PopoverContent>
+            </Popover>
+            <Button variant="ghost" size="icon" className="h-8 w-8" asChild title="Audio call">
+              <Link href={`/call/audio-${conversationId}`}><Phone className="h-4 w-4" /></Link>
+            </Button>
+            <Button variant="ghost" size="icon" className="h-8 w-8" asChild title="Video call">
+              <Link href={`/call/video-${conversationId}`}><Video className="h-4 w-4" /></Link>
+            </Button>
+            <Button
+              variant={showSidebar ? "secondary" : "ghost"}
+              size="icon"
+              className="h-8 w-8 hidden md:inline-flex"
+              onClick={() => setShowSidebar((v) => !v)}
+              title="Conversation info"
+            >
+              <PanelRight className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold truncate">{chatTitle}</p>
-          <p className="text-xs text-muted-foreground">{isOtherOnline ? "Online" : "Offline"}</p>
-        </div>
-        <div className="flex gap-1">
-          <Button variant="ghost" size="icon" className="h-8 w-8" asChild title="Audio call">
-            <Link href={`/call/audio-${conversationId}`}><Phone className="h-4 w-4" /></Link>
-          </Button>
-          <Button variant="ghost" size="icon" className="h-8 w-8" asChild title="Video call">
-            <Link href={`/call/video-${conversationId}`}><Video className="h-4 w-4" /></Link>
-          </Button>
-          <Button
-            variant={showSidebar ? "secondary" : "ghost"}
-            size="icon"
-            className="h-8 w-8 hidden md:inline-flex"
-            onClick={() => setShowSidebar((v) => !v)}
-            title="Conversation info"
-          >
-            <PanelRight className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
 
-      {/* Search bar */}
-      {showSearch && (
-        <div className="border-b px-3 py-2">
-          <Input
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search messages…"
-            className="h-8 text-sm"
-            autoFocus
-          />
-        </div>
-      )}
+        {/* Search bar */}
+        {showSearch && (
+          <div className="border-b px-3 py-2">
+            <Input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search messages…"
+              className="h-8 text-sm"
+              autoFocus
+            />
+          </div>
+        )}
 
-      <ScrollArea className="flex-1 p-4">
-        {filteredMessages.map((msg) => (
-          <MessageBubble
-            key={msg.id}
-            message={msg}
-            onDelete={handleDeleteMessage}
-            onReact={handleReactToMessage}
-          />
-        ))}
-        {isTyping && <TypingIndicator />}
-        <div ref={bottomRef} />
-      </ScrollArea>
+        <ScrollArea className="flex-1 p-4">
+          {filteredMessages.map((msg) => (
+            <MessageBubble
+              key={msg.id}
+              message={msg}
+              onDelete={handleDeleteMessage}
+              onReact={handleReactToMessage}
+              color={chatColor}
+            />
+          ))}
+          {isTyping && <TypingIndicator />}
+          <div ref={bottomRef} />
+        </ScrollArea>
 
-      <div className="border-t p-3 space-y-1">
-        <input ref={imageInputRef} type="file" accept="image/*,video/*" className="hidden" onChange={handleImageUpload} />
-        <input ref={fileInputRef} type="file" accept=".pdf,.doc,.docx,.zip,.rar,.txt,.xls,.xlsx" className="hidden" onChange={handleFileUpload} />
-        <div className="flex gap-1.5 items-center">
-          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => imageInputRef.current?.click()} disabled={isUploading} title="Send image/video">
-            <ImageIcon className="h-4 w-4" />
-          </Button>
-          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => fileInputRef.current?.click()} disabled={isUploading} title="Attach file">
-            <Paperclip className="h-4 w-4" />
-          </Button>
-          <EmojiPicker
-            onEmojiSelect={(emoji) => setContent((prev) => prev + emoji)}
-            triggerClassName="h-8 w-8 p-0"
-          />
-          <Popover open={stickerOpen} onOpenChange={setStickerOpen}>
-            <PopoverTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" title="Stickers">
-                <Smile className="h-4 w-4" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent side="top" className="w-64 p-0">
-              <StickerPicker onSelect={handleSendSticker} />
-            </PopoverContent>
-          </Popover>
-          <Popover open={giftOpen} onOpenChange={setGiftOpen}>
-            <PopoverTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" title="Send gift">
-                <Gift className="h-4 w-4" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent side="top" className="w-56 p-0">
-              <GiftPicker onSelect={handleSendGift} />
-            </PopoverContent>
-          </Popover>
-          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => setShowSearch(!showSearch)} title="Search messages">
-            <Search className="h-4 w-4" />
-          </Button>
-          <Input
-            value={content}
-            onChange={(e) => {
-              setContent(e.target.value);
-              send("typing.start", { conversation_id: conversationId });
-            }}
-            onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
-            placeholder="Type a message…"
-            className="flex-1 h-8 text-sm"
-            disabled={isUploading}
-          />
-          <Button
-            variant={recording ? "destructive" : "ghost"}
-            size="icon"
-            className="h-8 w-8 shrink-0"
-            onClick={recording ? stopRecording : startRecording}
-            disabled={isUploading}
-            title={recording ? "Stop recording" : "Voice message"}
-          >
-            {recording ? <Square className="h-3.5 w-3.5" /> : <Mic className="h-4 w-4" />}
-          </Button>
-          {recording && (
-            <span className="text-xs text-destructive font-mono animate-pulse">
-              {Math.floor(recordingTime / 60).toString().padStart(2, '0')}:{(recordingTime % 60).toString().padStart(2, '0')}
-            </span>
-          )}
-          <Button onClick={handleSend} disabled={!content.trim() || isUploading} size="icon" className="h-8 w-8 shrink-0">
-            <Send className="h-4 w-4" />
-          </Button>
+        <div className="border-t p-3 space-y-1">
+          <input ref={imageInputRef} type="file" accept="image/*,video/*" className="hidden" onChange={handleImageUpload} />
+          <input ref={fileInputRef} type="file" accept=".pdf,.doc,.docx,.zip,.rar,.txt,.xls,.xlsx" className="hidden" onChange={handleFileUpload} />
+          <div className="flex gap-1.5 items-center">
+            <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => imageInputRef.current?.click()} disabled={isUploading} title="Send image/video">
+              <ImageIcon className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => fileInputRef.current?.click()} disabled={isUploading} title="Attach file">
+              <Paperclip className="h-4 w-4" />
+            </Button>
+            <EmojiPicker
+              onEmojiSelect={(emoji) => setContent((prev) => prev + emoji)}
+              triggerClassName="h-8 w-8 p-0"
+            />
+            <Popover open={stickerOpen} onOpenChange={setStickerOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" title="Stickers">
+                  <Smile className="h-4 w-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent side="top" className="w-64 p-0">
+                <StickerPicker onSelect={handleSendSticker} />
+              </PopoverContent>
+            </Popover>
+            <Popover open={giftOpen} onOpenChange={setGiftOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" title="Send gift">
+                  <Gift className="h-4 w-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent side="top" className="w-56 p-0">
+                <GiftPicker onSelect={handleSendGift} />
+              </PopoverContent>
+            </Popover>
+            <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => setShowSearch(!showSearch)} title="Search messages">
+              <Search className="h-4 w-4" />
+            </Button>
+            <Input
+              value={content}
+              onChange={(e) => {
+                setContent(e.target.value);
+                send("typing.start", { conversation_id: conversationId });
+              }}
+              onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
+              placeholder="Type a message…"
+              className="flex-1 h-8 text-sm"
+              disabled={isUploading}
+            />
+            <Button
+              variant={recording ? "destructive" : "ghost"}
+              size="icon"
+              className="h-8 w-8 shrink-0"
+              onClick={recording ? stopRecording : startRecording}
+              disabled={isUploading}
+              title={recording ? "Stop recording" : "Voice message"}
+            >
+              {recording ? <Square className="h-3.5 w-3.5" /> : <Mic className="h-4 w-4" />}
+            </Button>
+            {recording && (
+              <span className="text-xs text-destructive font-mono animate-pulse">
+                {Math.floor(recordingTime / 60).toString().padStart(2, '0')}:{(recordingTime % 60).toString().padStart(2, '0')}
+              </span>
+            )}
+            <Button onClick={handleSend} disabled={!content.trim() || isUploading} size="icon" className="h-8 w-8 shrink-0">
+              <Send className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
-      </div>
       </div>
 
       {showSidebar && (

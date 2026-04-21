@@ -11,6 +11,7 @@ export interface MediaItem {
   duration?: number;
   size?: number;
   name?: string;
+  file_url?: string;
 }
 
 export interface ColoredPost {
@@ -70,8 +71,10 @@ export interface Post {
     | "blog"
     | "product"
     | "ad"
-    | "live";
+    | "live"
+    | "audio";
   media: MediaItem[];
+  media_url?: string;
   colored_post?: ColoredPost;
   privacy: "public" | "friends" | "only_me" | "custom" | "people_i_follow" | "people_follow_me" | "anonymous";
   feeling?: string;
