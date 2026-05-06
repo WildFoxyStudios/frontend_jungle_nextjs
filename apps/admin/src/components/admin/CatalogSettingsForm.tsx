@@ -154,12 +154,12 @@ export function CatalogSettingsForm({
   return (
     <Card>
       <CardContent className="p-6 space-y-6">
-        {title && <h2 className="font-semibold text-lg">{title}</h2>}
+        {title && <h2 className="font-extrabold uppercase tracking-wide text-lg">{title}</h2>}
 
         {Array.from(groups.entries()).map(([group, list]) => (
           <section key={group || "__default"} className="space-y-4">
             {group && (
-              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+              <h3 className="text-sm font-extrabold uppercase tracking-wide text-muted-foreground">
                 {group}
               </h3>
             )}
@@ -179,7 +179,7 @@ export function CatalogSettingsForm({
         ))}
 
         <div className="flex items-center justify-between pt-4 border-t">
-          <span className="text-xs text-muted-foreground">
+          <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
             {hasEdits
               ? `${Object.keys(edits).length} unsaved change(s)`
               : "No unsaved changes"}
@@ -221,7 +221,7 @@ function FieldRow({
           {field.label}
         </Label>
         {field.secret && (
-          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200">
+          <span className="text-[10px] font-mono font-bold uppercase tracking-wide px-1.5 py-0.5 border bg-warning text-warning-foreground">
             SECRET
           </span>
         )}
@@ -293,7 +293,7 @@ function renderInput({
       return (
         <textarea
           id={inputId}
-          className="w-full min-h-[100px] rounded-md border border-input bg-background px-3 py-2 text-sm font-mono focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="w-full min-h-[100px] border bg-background px-3 py-2 text-sm font-mono focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           placeholder={field.placeholder}
           value={typeof value === "string" ? value : value == null ? "" : JSON.stringify(value, null, 2)}
           onChange={(e) => onChange(e.target.value)}

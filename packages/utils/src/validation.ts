@@ -16,7 +16,17 @@ export const registerSchema = z.object({
   password: z.string().min(8, "Password must be at least 8 characters"),
   first_name: z.string().min(1, "First name is required").max(50),
   last_name: z.string().min(1, "Last name is required").max(50),
-  invite_code: z.string().optional(),
+  gender: z.string().optional(),
+  /**
+   * Accept either a plain digits phone number or a leading `+` country code.
+   * Backend handler expects E.164-ish — 5-20 chars including the `+`.
+   */
+  phone_number: z
+    .string()
+    .regex(/^\+?[1-9]\d{4,19}$/i, "Invalid phone number")
+    .optional()
+    .or(z.literal("")),
+  invite_code: z.string().optional().or(z.literal("")),
 });
 
 export const forgotPasswordSchema = z.object({
@@ -68,12 +78,15 @@ export const eventSchema = z.object({
   start_date: z.string().min(1, "Start date is required"),
   end_date: z.string().min(1, "End date is required"),
   location: z.string().max(200).optional(),
-});
+}).refine(
+  (data) => new Date(data.start_date) < new Date(data.end_date),
+  { message: "End date must be after start date", path: ["end_date"] },
+);
 
 export const productSchema = z.object({
   title: z.string().min(3).max(200),
   description: z.string().max(2000),
-  price: z.number().positive("Price must be positive"),
+  price: z.coerce.number().positive("Price must be positive"),
   currency: z.string().length(3),
   category: z.string().min(1),
   location: z.string().max(200).optional(),

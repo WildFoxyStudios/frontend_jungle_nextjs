@@ -1,5 +1,4 @@
-﻿import { Card, CardContent } from "@jungle/ui";
-import type { LucideIcon } from "lucide-react";
+﻿import type { LucideIcon } from "lucide-react";
 
 interface StatsCardProps {
   title: string;
@@ -10,25 +9,23 @@ interface StatsCardProps {
 
 export function StatsCard({ title, value, change, icon: Icon }: StatsCardProps) {
   return (
-    <Card>
-      <CardContent className="p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm text-muted-foreground">{title}</p>
-            <p className="text-2xl font-bold mt-1">{value}</p>
-            {change && (
-              <p className={`text-xs mt-1 ${change.startsWith("+") ? "text-green-600" : "text-red-600"}`}>
-                {change}
-              </p>
-            )}
-          </div>
-          {Icon && (
-            <div className="p-3 bg-primary/10 rounded-lg">
-              <Icon className="h-6 w-6 text-primary" />
-            </div>
+    <div className="rounded-lg border border-border-subtle shadow-sm p-4 bg-card">
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <p className="font-bold uppercase tracking-wide text-muted-foreground text-xs">{title}</p>
+          <p className="text-3xl font-extrabold tracking-tight mt-1">{value}</p>
+          {change && (
+            <p className={`text-xs font-bold uppercase tracking-wide mt-1 ${change.startsWith("+") ? "text-success" : "text-destructive"}`}>
+              {change}
+            </p>
           )}
         </div>
-      </CardContent>
-    </Card>
+        {Icon && (
+          <div className="rounded-lg bg-primary-subtle p-3 shrink-0">
+            <Icon className="h-6 w-6 text-foreground" />
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

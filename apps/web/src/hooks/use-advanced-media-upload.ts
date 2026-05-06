@@ -4,7 +4,6 @@ import { useState, useCallback } from "react";
 import { api } from "@jungle/api-client";
 import type { MediaItem } from "@jungle/api-client";
 import {
-  processFile,
   processImage,
   processVideo,
   processAudio,

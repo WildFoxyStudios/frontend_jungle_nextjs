@@ -1,9 +1,9 @@
-﻿"use client";
+"use client";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { adminApi } from "@jungle/api-client";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
-import { Button, Input, Label, Card, CardContent, Skeleton, Badge } from "@jungle/ui";
+import { Button, Input, Card, CardContent, Skeleton, Badge } from "@jungle/ui";
 import { toast } from "sonner";
 import { Plus, Copy, Trash2 } from "lucide-react";
 
@@ -39,7 +39,7 @@ export default function InvitationsPage() {
 
       {isLoading ? <Skeleton className="h-48 w-full mt-4" /> : (
         <div className="space-y-2 mt-4">
-          {invitations.length === 0 && <p className="text-muted-foreground text-sm">No invitations yet.</p>}
+          {invitations.length === 0 && <p className="text-muted-foreground text-sm font-bold uppercase tracking-wide">No invitations yet.</p>}
           {invitations.map((inv) => (
             <Card key={inv.id}>
               <CardContent className="p-4 flex items-center justify-between gap-4">

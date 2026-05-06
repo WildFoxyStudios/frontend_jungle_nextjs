@@ -39,10 +39,10 @@ export default function FundingPage() {
         const pct = Math.min(100, Math.round((Number(row.original.raised_amount ?? 0) / Math.max(1, Number(row.original.goal_amount ?? 1))) * 100));
         return (
           <div className="flex items-center gap-2">
-            <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden w-20">
-              <div className="h-full bg-primary rounded-full" style={{ width: `${pct}%` }} />
+            <div className="flex-1 h-2 border bg-secondary/40 overflow-hidden w-20">
+              <div className="h-full bg-primary" style={{ width: `${pct}%` }} />
             </div>
-            <span className="text-xs text-muted-foreground">{pct}%</span>
+            <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground">{pct}%</span>
           </div>
         );
       },
@@ -52,7 +52,7 @@ export default function FundingPage() {
     {
       id: "actions", header: "",
       cell: ({ row }) => (
-        <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => setPendingDelete(row.original)}>
+        <Button variant="destructive" size="sm" onClick={() => setPendingDelete(row.original)}>
           <Trash2 className="h-3.5 w-3.5" />
         </Button>
       ),

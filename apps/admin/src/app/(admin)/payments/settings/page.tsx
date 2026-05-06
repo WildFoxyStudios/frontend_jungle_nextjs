@@ -353,7 +353,7 @@ export default function PaymentSettingsPage() {
                       <TabsTrigger key={g.id} value={g.id} className="whitespace-nowrap">
                         <span className="flex items-center gap-1.5">
                           {g.short}
-                          {enabled && <span className="h-1.5 w-1.5 rounded-full bg-green-500" aria-label="enabled" />}
+                          {enabled && <span className="h-1.5 w-1.5 rounded-full bg-success" aria-label="enabled" />}
                         </span>
                       </TabsTrigger>
                     );

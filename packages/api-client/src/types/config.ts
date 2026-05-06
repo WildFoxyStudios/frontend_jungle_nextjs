@@ -10,7 +10,7 @@ export interface PublicConfig {
   invitation_only: boolean;
   email_verification: boolean;
   phone_verification: boolean;
-  website_mode: "normal" | "linkedin" | "instagram" | "patreon";
+  website_mode: "normal" | "linkedin" | "instagram" | "patreon" | "askfm" | "twitter";
   features: {
     groups: boolean;
     pages: boolean;

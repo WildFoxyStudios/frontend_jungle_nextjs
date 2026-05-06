@@ -1,9 +1,9 @@
-﻿"use client";
+"use client";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { adminApi } from "@jungle/api-client";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
-import { Button, Input, Card, CardContent, Skeleton } from "@jungle/ui";
+import { Button, Input, Skeleton } from "@jungle/ui";
 import { toast } from "sonner";
 import { Plus, Trash2 } from "lucide-react";
 
@@ -34,8 +34,8 @@ export default function GendersPage() {
         <Button onClick={() => createMutation.mutate()} disabled={!name.trim() || createMutation.isPending}><Plus className="h-4 w-4" /></Button>
       </div>
       {isLoading ? <Skeleton className="h-32 w-full mt-4" /> : (
-        <div className="border rounded-lg divide-y mt-4">
-          {genders.length === 0 && <p className="text-center text-muted-foreground py-8 text-sm">No genders configured.</p>}
+        <div className="border bg-card divide-y-2 divide-foreground shadow-sm mt-4">
+          {genders.length === 0 && <p className="text-center text-muted-foreground py-8 text-sm font-bold uppercase tracking-wide">No genders configured.</p>}
           {genders.map((g) => (
             <div key={g.id} className="flex items-center justify-between px-4 py-3">
               <span className="text-sm font-medium">{g.name}</span>

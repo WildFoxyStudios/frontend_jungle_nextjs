@@ -88,11 +88,11 @@ export default function BankReceiptsPage() {
       header: "",
       cell: ({ row }) => (
         <div className="flex gap-1">
-          <Button size="sm" variant="outline" className="gap-1 text-xs text-green-600 border-green-600 hover:bg-green-50"
+          <Button size="sm" variant="default" className="gap-1 text-xs"
             onClick={() => setPending({ id: row.original.id, action: "approve" })}>
             <CheckCircle2 className="h-3 w-3" /> Approve
           </Button>
-          <Button size="sm" variant="outline" className="gap-1 text-xs text-destructive border-destructive hover:bg-destructive/10"
+          <Button size="sm" variant="destructive" className="gap-1 text-xs"
             onClick={() => setPending({ id: row.original.id, action: "reject" })}>
             <XCircle className="h-3 w-3" /> Reject
           </Button>
@@ -107,7 +107,7 @@ export default function BankReceiptsPage() {
       description="Review manual bank transfer receipts submitted by users."
       actions={
         <select
-          className="text-sm border rounded px-2 py-1 bg-background"
+          className="text-sm border bg-background px-2 py-1"
           value={status ?? ""}
           onChange={(e) => { setStatus(e.target.value || undefined); setPage(1); }}
         >

@@ -1,13 +1,27 @@
 import type { MetadataRoute } from "next";
-import { BASE_URL } from "@/lib/seo";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  return [
-    { url: BASE_URL, lastModified: new Date(), changeFrequency: "daily", priority: 1 },
-    { url: `${BASE_URL}/welcome`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
-    { url: `${BASE_URL}/about`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
-    { url: `${BASE_URL}/terms`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.3 },
-    { url: `${BASE_URL}/privacy`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.3 },
-    { url: `${BASE_URL}/contact`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.4 },
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://jungle.com";
+
+  const staticPages = [
+    { url: baseUrl, lastModified: new Date(), changeFrequency: "daily" as const, priority: 1.0 },
+    { url: `${baseUrl}/feed`, lastModified: new Date(), changeFrequency: "daily" as const, priority: 0.9 },
+    { url: `${baseUrl}/watch`, lastModified: new Date(), changeFrequency: "daily" as const, priority: 0.8 },
+    { url: `${baseUrl}/marketplace`, lastModified: new Date(), changeFrequency: "daily" as const, priority: 0.8 },
+    { url: `${baseUrl}/groups`, lastModified: new Date(), changeFrequency: "daily" as const, priority: 0.7 },
+    { url: `${baseUrl}/pages`, lastModified: new Date(), changeFrequency: "daily" as const, priority: 0.7 },
+    { url: `${baseUrl}/events`, lastModified: new Date(), changeFrequency: "daily" as const, priority: 0.7 },
+    { url: `${baseUrl}/jobs`, lastModified: new Date(), changeFrequency: "daily" as const, priority: 0.7 },
+    { url: `${baseUrl}/reels`, lastModified: new Date(), changeFrequency: "daily" as const, priority: 0.8 },
+    { url: `${baseUrl}/blogs`, lastModified: new Date(), changeFrequency: "daily" as const, priority: 0.6 },
+    { url: `${baseUrl}/forums`, lastModified: new Date(), changeFrequency: "daily" as const, priority: 0.6 },
+    { url: `${baseUrl}/movies`, lastModified: new Date(), changeFrequency: "daily" as const, priority: 0.6 },
+    { url: `${baseUrl}/explore`, lastModified: new Date(), changeFrequency: "daily" as const, priority: 0.7 },
+    { url: `${baseUrl}/community-standards`, lastModified: new Date(), changeFrequency: "monthly" as const, priority: 0.4 },
+    { url: `${baseUrl}/privacy`, lastModified: new Date(), changeFrequency: "monthly" as const, priority: 0.4 },
+    { url: `${baseUrl}/terms`, lastModified: new Date(), changeFrequency: "monthly" as const, priority: 0.4 },
+    { url: `${baseUrl}/ads/library`, lastModified: new Date(), changeFrequency: "daily" as const, priority: 0.4 },
   ];
+
+  return staticPages;
 }

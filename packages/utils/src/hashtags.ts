@@ -20,10 +20,17 @@ export function parseHashtags(text: string): HashtagMatch[] {
   return matches;
 }
 
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
 export function highlightHashtags(text: string): string {
   return text.replace(
     HASHTAG_REGEX,
-    '<a href="/hashtag/$1" class="hashtag">#$1</a>',
+    (match, tag) => {
+      const safe = escapeHtml(tag);
+      return `<a href="/hashtag/${encodeURIComponent(safe)}" class="hashtag">#${safe}</a>`;
+    },
   );
 }
 

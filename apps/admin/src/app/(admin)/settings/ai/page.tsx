@@ -205,7 +205,7 @@ export default function AiSettingsPage() {
               )}
               {!isLoading && providers.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+                  <TableCell colSpan={8} className="text-center text-muted-foreground py-8 font-bold uppercase tracking-wide">
                     No providers configured. Using env-var fallback (OPENAI_API_KEY, etc).
                   </TableCell>
                 </TableRow>

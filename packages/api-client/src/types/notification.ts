@@ -22,6 +22,8 @@ export type NotificationType =
   | "new_order"
   | "order_status"
   | "job_application"
+  | "application_status"
+  | "product_review"
   | "report"
   | "pro_expiring"
   | "pro_expired"
@@ -31,7 +33,8 @@ export type NotificationType =
   | "birthday"
   | "live_stream"
   | "funding_donation"
-  | "funding_goal_reached";
+  | "funding_goal_reached"
+  | "new_message";
 
 export interface Notification {
   id: number;

@@ -1,30 +1,58 @@
 import { api } from "./client";
-import type { Conversation, Message, Gift, StickerPack, PaginatedResponse } from "./types/index";
+import { normalizeConversation, normalizeConversationPage } from "./conversation-normalize";
+import {
+  normalizeMessagePage,
+  normalizeMessageRow,
+  normalizeSentMessagePayload,
+} from "./message-normalize";
+import type { Conversation, Gift, StickerPack, PaginatedResponse } from "./types/index";
 
 export const messagesApi = {
   getConversations: (cursor?: string) =>
-    api.get<PaginatedResponse<Conversation>>("/v1/conversations", { cursor }),
+    api.get<PaginatedResponse<unknown>>("/v1/conversations", { cursor }).then(normalizeConversationPage),
   getPinnedConversations: () =>
-    api.get<PaginatedResponse<Conversation>>("/v1/conversations/pinned"),
+    api.get<PaginatedResponse<unknown>>("/v1/conversations/pinned").then(normalizeConversationPage),
   getArchivedConversations: () =>
-    api.get<PaginatedResponse<Conversation>>("/v1/conversations/archived"),
+    api.get<PaginatedResponse<unknown>>("/v1/conversations/archived").then(normalizeConversationPage),
   getConversation: (id: number) =>
-    api.get<Conversation>(`/v1/conversations/${id}`),
+    api.get<unknown>(`/v1/conversations/${id}`).then((raw) => normalizeConversation(raw)),
   createConversation: (userId: number) =>
-    api.post<Conversation>("/v1/conversations", { user_id: userId }),
+    api.post<unknown>("/v1/conversations", { user_id: userId }).then((raw) => normalizeConversation(raw)),
   createGroupConversation: (data: { name: string; member_ids: number[]; avatar?: string }) =>
-    api.post<Conversation>("/v1/conversations/group", data),
+    api.post<unknown>("/v1/conversations/group", data).then((raw) => normalizeConversation(raw)),
   updateGroupConversation: (id: number, data: { name?: string; avatar?: string }) =>
-    api.put<Conversation>(`/v1/conversations/group/${id}`, data),
+    api.put<unknown>(`/v1/conversations/group/${id}`, data).then((raw) => normalizeConversation(raw)),
   getMessages: (conversationId: number, cursor?: string) =>
-    api.get<PaginatedResponse<Message>>(`/v1/conversations/${conversationId}/messages`, { cursor }),
-  sendMessage: (conversationId: number, data: { content?: string; type?: string; media_id?: number; sticker_id?: number; gift_id?: number; reply_to?: number }) =>
-    api.post<Message>(`/v1/conversations/${conversationId}/messages`, data),
+    api
+      .get<PaginatedResponse<unknown>>(`/v1/conversations/${conversationId}/messages`, { cursor })
+      .then(normalizeMessagePage),
+  sendMessage: (conversationId: number, data: { content?: string; type?: string; media_id?: number; sticker_id?: number; gift_id?: number; reply_to?: number }) => {
+    const body: Record<string, unknown> = { ...data };
+    if (data.reply_to != null) {
+      body.reply_to_id = data.reply_to;
+      delete body.reply_to;
+    }
+    if (data.type != null) {
+      body.message_type = data.type;
+      delete body.type;
+    }
+    return api
+      .post<unknown>(`/v1/conversations/${conversationId}/messages`, body)
+      .then(normalizeSentMessagePayload);
+  },
   sendTypingIndicator: (conversationId: number) =>
     api.post<void>(`/v1/conversations/${conversationId}/typing`),
+  stopTypingIndicator: (conversationId: number) =>
+    api.post<void>(`/v1/conversations/${conversationId}/typing/stop`),
   deleteMessage: (id: number) => api.delete<void>(`/v1/messages/${id}`),
   forwardMessage: (messageId: number, conversationIds: number[]) =>
-    api.post<void>(`/v1/messages/${messageId}/forward`, { conversation_ids: conversationIds }),
+    api
+      .post<unknown>(`/v1/messages/${messageId}/forward`, { conversation_ids: conversationIds })
+      .then((raw) => {
+        if (Array.isArray(raw)) return raw.map((x) => normalizeMessageRow(x));
+        const r = raw as { data?: unknown[] };
+        return Array.isArray(r?.data) ? r.data.map((x) => normalizeMessageRow(x)) : [];
+      }),
   pinMessage: (id: number) => api.post<void>(`/v1/messages/${id}/pin`),
   unpinMessage: (id: number) => api.delete<void>(`/v1/messages/${id}/pin`),
   favoriteMessage: (id: number) => api.post<void>(`/v1/messages/${id}/favorite`),
@@ -47,6 +75,14 @@ export const messagesApi = {
     api.delete<void>(`/v1/conversations/${id}`),
   updateConversationColor: (id: number, color: string) =>
     api.put<void>(`/v1/conversations/${id}/color`, { color }),
+  muteConversation: (id: number, until?: string) =>
+    api.post<{ muted: boolean; muted_until: string | null }>(`/v1/conversations/${id}/mute`, until ? { until } : {}),
+  unmuteConversation: (id: number) =>
+    api.delete<{ muted: boolean }>(`/v1/conversations/${id}/mute`),
+  updateConversationWallpaper: (id: number, wallpaperUrl: string | null) =>
+    api.put<{ wallpaper_url: string | null }>(`/v1/conversations/${id}/wallpaper`, { wallpaper_url: wallpaperUrl }),
+  updateConversationDestruct: (id: number, destructAfterSeconds: number | null) =>
+    api.put<{ destruct_after_seconds: number | null }>(`/v1/conversations/${id}/destruct`, { destruct_after_seconds: destructAfterSeconds }),
   getGifts: () => api.get<Gift[]>("/v1/gifts"),
   getStickerPacks: () => api.get<StickerPack[]>("/v1/stickers/packs"),
   getCalls: (cursor?: string) =>
@@ -73,11 +109,11 @@ export const messagesApi = {
       expire_ts: number;
     }>("/v1/calls/viewer-token", data),
   getBroadcasts: (cursor?: string) =>
-    api.get<PaginatedResponse<Conversation>>("/v1/broadcasts", { cursor }),
+    api.get<PaginatedResponse<unknown>>("/v1/broadcasts", { cursor }).then(normalizeConversationPage),
   createBroadcast: (data: { name: string; member_ids: number[] }) =>
-    api.post<Conversation>("/v1/broadcasts", data),
+    api.post<unknown>("/v1/broadcasts", data).then((raw) => normalizeConversation(raw)),
   updateBroadcast: (id: number, data: { name?: string }) =>
-    api.put<Conversation>(`/v1/broadcasts/${id}`, data),
+    api.put<unknown>(`/v1/broadcasts/${id}`, data).then((raw) => normalizeConversation(raw)),
   deleteBroadcast: (id: number) => api.delete<void>(`/v1/broadcasts/${id}`),
   getBroadcastMembers: (id: number) => api.get<unknown[]>(`/v1/broadcasts/${id}/members`),
   addBroadcastMembers: (id: number, userIds: number[]) =>
@@ -87,11 +123,11 @@ export const messagesApi = {
   sendBroadcast: (id: number, message: string) =>
     api.post<void>(`/v1/broadcasts/${id}/send`, { message }),
   getConversationMedia: (id: number, cursor?: string) =>
-    api.get<PaginatedResponse<Message>>(`/v1/conversations/${id}/media`, { cursor }),
+    api.get<PaginatedResponse<unknown>>(`/v1/conversations/${id}/media`, { cursor }).then(normalizeMessagePage),
   getConversationPinnedMessages: (id: number) =>
-    api.get<Message[]>(`/v1/conversations/${id}/pinned-messages`),
+    api.get<unknown>(`/v1/conversations/${id}/pinned-messages`).then((raw) => normalizeMessagePage(raw).data),
   getStarredMessages: (cursor?: string) =>
-    api.get<PaginatedResponse<Message>>("/v1/messages/favorites", { cursor }),
+    api.get<PaginatedResponse<unknown>>("/v1/messages/favorites", { cursor }).then(normalizeMessagePage),
   searchConversationMessages: (id: number, q: string, cursor?: string) =>
-    api.get<PaginatedResponse<Message>>(`/v1/conversations/${id}/search`, { q, cursor }),
+    api.get<PaginatedResponse<unknown>>(`/v1/conversations/${id}/search`, { q, cursor }).then(normalizeMessagePage),
 };

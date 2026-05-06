@@ -148,4 +148,17 @@ export const contentApi = {
     api.get<{ remaining: number; limit: number; plan: string; reset_at: string }>(
       "/v1/ai/balance/images",
     ),
+  /**
+   * Smart-reply chips for the chat composer. The caller passes the
+   * tail of the conversation (oldest -> newest); the backend caps it
+   * at 6 messages and returns 3-5 short replies.
+   */
+  aiChatSuggestions: (params: {
+    messages: { role: "me" | "them"; text: string }[];
+    locale?: string;
+  }) =>
+    api.post<{ suggestions: string[]; provider: string }>(
+      "/v1/ai/chat-suggestions",
+      params,
+    ),
 };

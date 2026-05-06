@@ -84,11 +84,11 @@ export default function RefundsPage() {
       header: "",
       cell: ({ row }) => (
         <div className="flex gap-1">
-          <Button size="sm" variant="outline" className="gap-1 text-xs text-green-600 border-green-600 hover:bg-green-50"
+          <Button size="sm" variant="default" className="gap-1 text-xs"
             onClick={() => setPending({ id: row.original.id, action: "approve" })}>
             <CheckCircle2 className="h-3 w-3" /> Approve
           </Button>
-          <Button size="sm" variant="outline" className="gap-1 text-xs text-destructive border-destructive hover:bg-destructive/10"
+          <Button size="sm" variant="destructive" className="gap-1 text-xs"
             onClick={() => setPending({ id: row.original.id, action: "reject" })}>
             <XCircle className="h-3 w-3" /> Reject
           </Button>

@@ -1,5 +1,6 @@
-﻿import { api } from "./client";
+import { api } from "./client";
 import type { User, PaginatedResponse } from "./types/index";
+import { unwrapAdminList, unwrapPaginated } from "./unwrap";
 
 /**
  * Configurable site_config key definition, returned by
@@ -18,6 +19,34 @@ export type ConfigFieldType =
   | "select"
   | "json"
   | "media_url";
+
+/**
+ * Admin-only view of a user row returned by `list_users_filtered`
+ * (`GET /v1/admin/users`). Richer than the public `User` type because
+ * it exposes fields that only admins may inspect (signup IP, country,
+ * phone). See `admin-service/src/handlers/admin_granular.rs::UserListItem`.
+ */
+export interface AdminUserRow {
+  id: number;
+  username: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  avatar: string;
+  phone_number: string | null;
+  gender: string | null;
+  country_id: number | null;
+  signup_ip: string | null;
+  signup_source: string | null;
+  is_active: boolean;
+  is_banned: boolean;
+  is_verified: boolean;
+  is_pro: number;
+  is_admin: boolean;
+  email_verified: boolean;
+  last_seen: string | null;
+  created_at: string;
+}
 
 export interface ConfigFieldSpec {
   category: string;
@@ -54,6 +83,27 @@ export const adminApi = {
     }>("/v1/admin/changelog"),
   getUsers: (params?: Record<string, string | number | boolean | undefined>) =>
     api.get<PaginatedResponse<User>>("/v1/admin/users", params),
+  /**
+   * Plan §3.22 AP-A3 — extended admin user list.
+   *
+   * Hits the same `/v1/admin/users` route as `getUsers` but threads the
+   * admin-only filters (IP, phone, gender, country, date range) the backend
+   * handler `list_users_filtered` supports, and returns the richer
+   * admin-view rows (including `phone_number`, `signup_ip`, `country_id`).
+   */
+  listUsersFiltered: (params?: {
+    q?: string;
+    ip?: string;
+    phone?: string;
+    gender?: string;
+    country?: string;
+    date_from?: string;
+    date_to?: string;
+    status?: string;
+    page?: number;
+    per_page?: number;
+  }) =>
+    api.get<PaginatedResponse<AdminUserRow>>("/v1/admin/users", params),
   getUser: (id: number) => api.get<User>(`/v1/admin/users/${id}`),
   banUser: (id: number) => api.post<void>(`/v1/admin/users/${id}/ban`),
   unbanUser: (id: number) => api.post<void>(`/v1/admin/users/${id}/unban`),
@@ -72,6 +122,55 @@ export const adminApi = {
   topUpWallet: (id: number, amount: number) =>
     api.post<void>(`/v1/admin/users/${id}/top-up`, { amount }),
   deleteUserContent: (id: number) => api.delete<void>(`/v1/admin/users/${id}/content`),
+
+  // ── Plan §3.22 AP-A4 — surgical content deletes ─────────────────
+  deleteUserPosts: (id: number) =>
+    api.delete<{ deleted: number }>(`/v1/admin/users/${id}/posts`),
+  deleteUserArticles: (id: number) =>
+    api.delete<{ deleted: number }>(`/v1/admin/users/${id}/articles`),
+  deleteUserStories: (id: number) =>
+    api.delete<{ deleted: number }>(`/v1/admin/users/${id}/stories`),
+  deleteUserMessages: (id: number) =>
+    api.delete<{ deleted: number }>(`/v1/admin/users/${id}/messages`),
+  deleteUserNotifications: (id: number) =>
+    api.delete<{ deleted: number }>(`/v1/admin/users/${id}/notifications`),
+
+  // ── Plan §3.22 AP-A1 — JSONB granular permissions ──────────────
+  getGranularPermissions: (id: number) =>
+    api.get<{ permissions: Record<string, boolean> }>(
+      `/v1/admin/users/${id}/permissions/granular`,
+    ),
+  updateGranularPermissions: (id: number, permissions: Record<string, boolean>) =>
+    api.put<{ permissions: Record<string, boolean> }>(
+      `/v1/admin/users/${id}/permissions/granular`,
+      { permissions },
+    ),
+
+  // ── Plan §3.22 AP-A2 — 8 stat cards + date range ───────────────
+  getExtendedStats: (params?: {
+    range?: "today" | "yesterday" | "week" | "month" | "last_month" | "year" | "all";
+    from?: string;
+    to?: string;
+  }) =>
+    api.get<{
+      total_users: number;
+      total_posts: number;
+      total_pages: number;
+      total_groups: number;
+      online_users: number;
+      total_comments: number;
+      total_games: number;
+      total_messages: number;
+      range: string;
+      from: string | null;
+      to: string | null;
+    }>("/v1/admin/stats/extended", params),
+
+  // ── Plan §3.22 AP-A3 — gender breakdown widget ─────────────────
+  getGenderBreakdown: () =>
+    api.get<Array<{ gender: string | null; count: number }>>(
+      "/v1/admin/stats/gender-breakdown",
+    ),
   sendEmailToUser: (data: { user_id: number; subject: string; body: string }) =>
     api.post<void>("/v1/admin/send-email", data),
   getReports: (params?: Record<string, string | undefined>) =>
@@ -151,11 +250,14 @@ export const adminApi = {
   deleteAnnouncement: (id: number) => api.delete<void>(`/v1/admin/announcements/${id}`),
   getSystemHealth: () => api.get<Record<string, unknown>>("/v1/admin/health"),
   getPaymentStats: () => api.get<{
-    total_revenue: number;
+    total_revenue: number | string;
+    revenue_30d?: number | string;
     total_transactions: number;
     pending_withdrawals: number;
-    revenue_chart: { date: string; value: number }[];
     currency: string;
+    revenue_chart: { date: string; value: number | string }[];
+    status_counts?: Record<string, number>;
+    top_providers?: { provider: string; transactions: number; total: number | string }[];
   }>("/v1/admin/payments/stats"),
   getCategories: (type?: string) =>
     api.get<{ id: number; name: string; type: string; parent_id?: number; active: boolean; sort_order: number }[]>(
@@ -166,9 +268,16 @@ export const adminApi = {
   updateCategory: (id: number, data: { name?: string; active?: boolean; sort_order?: number }) =>
     api.patch<void>(`/v1/admin/categories/${id}`, data),
   deleteCategory: (id: number) => api.delete<void>(`/v1/admin/categories/${id}`),
-  sendMassNotification: (data: { title: string; message: string; segment?: string }) =>
-    api.post<void>("/v1/admin/mass-notifications", data),
-  getOAuthApps: () => api.get<unknown[]>("/v1/admin/oauth-apps"),
+  sendMassNotification: (data: {
+    title: string;
+    message: string;
+    segment?: string;
+    target?: string;
+    country?: string;
+    gender?: string;
+    only_online?: boolean;
+  }) => api.post<void>("/v1/admin/mass-notifications", data),
+  getOAuthApps: () => api.get<unknown>("/v1/admin/oauth-apps").then(unwrapAdminList),
   toggleOAuthApp: (id: number) => api.post<void>(`/v1/admin/oauth-apps/${id}/toggle`),
   deleteOAuthApp: (id: number) => api.delete<void>(`/v1/admin/oauth-apps/${id}`),
   getApiKeys: () => api.get<unknown[]>("/v1/admin/api-keys"),
@@ -222,7 +331,7 @@ export const adminApi = {
   getAdminOrders: (params?: Record<string, string | undefined>) =>
     api.get<PaginatedResponse<unknown>>("/v1/admin/orders", params),
   getAdminOffers: (params?: Record<string, string | undefined>) =>
-    api.get<PaginatedResponse<unknown>>("/v1/admin/offers", params),
+    api.get<unknown>("/v1/admin/offers", params).then(unwrapPaginated),
   deleteAdminOffer: (id: number) => api.delete<void>(`/v1/admin/offers/${id}`),
   getAdminReviews: (params?: Record<string, string | undefined>) =>
     api.get<PaginatedResponse<unknown>>("/v1/admin/reviews", params),
@@ -230,7 +339,7 @@ export const adminApi = {
 
   // System
   getActivityLog: (params?: Record<string, string | undefined>) =>
-    api.get<PaginatedResponse<unknown>>("/v1/admin/activities", params),
+    api.get<unknown>("/v1/admin/activities", params).then(unwrapPaginated),
   getOnlineUsers: () => api.get<unknown[]>("/v1/admin/online-users"),
   getReferrals: (params?: Record<string, string | undefined>) =>
     api.get<PaginatedResponse<unknown>>("/v1/admin/referrals", params),
@@ -240,7 +349,7 @@ export const adminApi = {
   getCustomCode: () => api.get<{ header_code: string; footer_code: string }>("/v1/admin/custom-code"),
   updateCustomCode: (data: { header_code: string; footer_code: string }) =>
     api.put<void>("/v1/admin/custom-code", data),
-  getInvitations: () => api.get<unknown[]>("/v1/admin/invitations"),
+  getInvitations: () => api.get<unknown>("/v1/admin/invitations").then(unwrapAdminList),
   createInvitation: (data: { email?: string; max_uses?: number }) =>
     api.post<unknown>("/v1/admin/invitations", data),
   deleteInvitation: (id: number) => api.delete<void>(`/v1/admin/invitations/${id}`),
@@ -254,7 +363,21 @@ export const adminApi = {
     api.delete<void>(`/v1/admin/newsletter/subscribers/${id}`),
   generateSitemap: () => api.post<void>("/v1/admin/sitemap/generate"),
   getThirdPartySites: () => api.get<unknown[]>("/v1/admin/settings/third_party"),
-  uploadToStorage: (formData: FormData) => api.upload<void>("/v1/admin/settings/upload_storage", formData),
+  uploadToStorage: (formData: FormData) => api.upload<void>("/v1/admin/storage/config", formData),
+
+  // Storage providers (S3 / Wasabi / Backblaze / Spaces)
+  listStorageProviders: () =>
+    api.get<{ data: unknown[] }>("/v1/admin/storage/config"),
+  createStorageProvider: (data: Record<string, unknown>) =>
+    api.post<{ data: { id: number } }>("/v1/admin/storage/config", data),
+  updateStorageProvider: (id: number, data: Record<string, unknown>) =>
+    api.patch<{ data: { updated: boolean } }>(`/v1/admin/storage/config/${id}`, data),
+  deleteStorageProvider: (id: number) =>
+    api.delete<{ data: { deleted: boolean } }>(`/v1/admin/storage/config/${id}`),
+  testStorageProvider: (id: number) =>
+    api.post<{ data: { ok: boolean; message?: string; error?: string } }>(
+      `/v1/admin/storage/config/${id}/test`,
+    ),
 
   // Customization
   getGifts: () => api.get<unknown[]>("/v1/admin/gifts"),
@@ -312,8 +435,12 @@ export const adminApi = {
   createAdminGame: (data: Record<string, unknown>) => api.post<unknown>("/v1/admin/games", data),
   toggleAdminGame: (id: number) => api.post<void>(`/v1/admin/games/${id}/toggle`),
   deleteAdminGame: (id: number) => api.delete<void>(`/v1/admin/games/${id}`),
+  updateAdminGame: (id: number, data: Record<string, unknown>) =>
+    api.patch<unknown>(`/v1/admin/games/${id}`, data),
+  bulkDeleteAdminGames: (ids: number[]) =>
+    api.post<{ data: { deleted: number } }>("/v1/admin/games/bulk-delete", { ids }),
   getProMembers: (params?: Record<string, string | undefined>) =>
-    api.get<PaginatedResponse<unknown>>("/v1/admin/pro-members", params),
+    api.get<unknown>("/v1/admin/pro-members", params).then(unwrapPaginated),
   getMonetizationSubscriptions: (params?: Record<string, string | undefined>) =>
     api.get<PaginatedResponse<unknown>>("/v1/admin/monetization", params),
   getAffiliates: (params?: Record<string, string | undefined>) =>
@@ -322,7 +449,16 @@ export const adminApi = {
     api.get<Record<string, unknown>>(`/v1/admin/settings/${category}`),
   updateSettingsCategory: (category: string, data: Record<string, unknown>) =>
     api.put<void>(`/v1/admin/settings/${category}`, data),
-  getSubCategories: () => api.get<unknown[]>("/v1/admin/sub-categories"),
+  getSubCategories: (params?: { category_id?: number | string; type?: string }) =>
+    api.get<{ data: unknown[] }>(
+      "/v1/admin/sub-categories",
+      params
+        ? Object.fromEntries(
+            Object.entries(params).filter(([, v]) => v !== undefined && v !== "")
+              .map(([k, v]) => [k, String(v)]),
+          )
+        : undefined,
+    ),
   createSubCategory: (data: Record<string, unknown>) =>
     api.post<unknown>("/v1/admin/sub-categories", data),
   updateSubCategory: (id: number, data: Record<string, unknown>) =>
@@ -343,9 +479,9 @@ export const adminApi = {
     api.get<PaginatedResponse<unknown>>("/v1/admin/forum-replies", params),
   deleteForumReply: (id: number) => api.delete<void>(`/v1/admin/forum-replies/${id}`),
   createAdminMovie: (data: Record<string, unknown>) =>
-    api.post<unknown>("/v1/admin/movies", data),
+    api.post<unknown>("/v1/admin/manage-movies", data),
   updateAdminMovie: (id: number, data: Record<string, unknown>) =>
-    api.put<unknown>(`/v1/admin/movies/${id}`, data),
+    api.put<unknown>(`/v1/admin/manage-movies/${id}`, data),
   addAutoFriend: (userId: number) =>
     api.post<void>("/v1/admin/auto-settings/friends", { user_id: userId }),
   removeAutoFriend: (id: number) => api.delete<void>(`/v1/admin/auto-settings/friends/${id}`),
@@ -360,6 +496,11 @@ export const adminApi = {
   getStickerPackStickers: (packId: number) => api.get<unknown[]>(`/v1/admin/sticker-packs/${packId}/stickers`),
   addSticker: (packId: number, formData: FormData) =>
     api.upload<unknown>(`/v1/admin/sticker-packs/${packId}/stickers`, formData),
+  bulkAddStickers: (packId: number, imageUrls: string[]) =>
+    api.post<{ data: { added: number } }>(
+      `/v1/admin/sticker-packs/${packId}/stickers/bulk`,
+      { image_urls: imageUrls },
+    ),
   deleteSticker: (id: number) => api.delete<void>(`/v1/admin/stickers/${id}`),
   approveAdminBlog: (id: number) => api.post<void>(`/v1/admin/site-blogs/${id}/approve`),
   updateAdminForum: (id: number, data: Record<string, unknown>) =>
@@ -400,4 +541,79 @@ export const adminApi = {
     api.post<{ ok: boolean; reply?: string; provider?: string; error?: string }>(
       `/v1/ai/admin/providers/${id}/test`,
     ),
+  bulkUserAction: (data: {
+    ids: number[];
+    action:
+      | "ban"
+      | "unban"
+      | "verify"
+      | "unverify"
+      | "make_pro"
+      | "remove_pro"
+      | "make_admin"
+      | "remove_admin"
+      | "delete";
+  }) =>
+    api.post<{ data: { action: string; affected: number } }>("/v1/admin/users/bulk", data),
+  // System tools
+  ffmpegProbe: () =>
+    api.get<{
+      data: {
+        ok: boolean;
+        on_path: boolean;
+        version?: string;
+        codecs?: { name: string; available: boolean }[];
+        error?: string;
+      };
+    }>("/v1/admin/system/ffmpeg-probe"),
+  testEmail: (data: { to: string; subject?: string; body?: string }) =>
+    api.post<{ data: { sent: boolean; provider?: string; error?: string } }>(
+      "/v1/admin/system/email/test",
+      data,
+    ),
+  testSms: (data: { to: string; message?: string }) =>
+    api.post<{ data: { sent: boolean; provider?: string; error?: string } }>(
+      "/v1/admin/system/sms/test",
+      data,
+    ),
+  verifyOAuthApp: (provider: string) =>
+    api.post<{
+      data: { provider: string; configured: boolean; client_id_present: boolean; client_secret_present: boolean };
+    }>(`/v1/admin/oauth-apps/${provider}/verify`),
+  // Backups
+  downloadBackupUrl: (id: number) => `/v1/admin/backups/${id}/download`,
+  restoreBackup: (id: number) =>
+    api.post<{ data: { restored: boolean } }>(`/v1/admin/backups/${id}/restore`),
+  deleteBackup: (id: number) => api.delete<void>(`/v1/admin/backups/${id}`),
+  // Dead-letter queue (failed background jobs / NATS rejects)
+  getDlq: (params?: { limit?: number; offset?: number }) =>
+    api.get<{ data: unknown[]; meta?: { total: number } }>(
+      "/v1/admin/system/dlq",
+      params
+        ? Object.fromEntries(
+            Object.entries(params).filter(([, v]) => v !== undefined).map(([k, v]) => [k, String(v)]),
+          )
+        : undefined,
+    ),
+  retryDlq: (id: number) => api.post<{ data: { retried: boolean } }>(`/v1/admin/system/dlq/${id}/retry`),
+  deleteDlq: (id: number) => api.delete<void>(`/v1/admin/system/dlq/${id}`),
+
+  // Lookups
+  getLookups: (lookupType?: string) =>
+    api.get<{ data: { id: number; lookup_type: string; value: string; label_key: string; icon: string | null; sort_order: number; is_active: boolean; created_at: string }[] }>(
+      "/v1/admin/lookups", lookupType ? { type: lookupType } : undefined
+    ),
+  createLookup: (data: { lookup_type: string; value: string; label_key: string; icon?: string; sort_order?: number }) =>
+    api.post<unknown>("/v1/admin/lookups", data),
+  updateLookup: (id: number, data: { lookup_type?: string; value?: string; label_key?: string; icon?: string; sort_order?: number; is_active?: boolean }) =>
+    api.put<unknown>(`/v1/admin/lookups/${id}`, data),
+  deleteLookup: (id: number) => api.delete<void>(`/v1/admin/lookups/${id}`),
+
+  // Countries
+  getCountries: (params?: { q?: string; active?: boolean }) =>
+    api.get<{ data: { id: number; name: string; iso_code: string; iso3_code: string | null; phone_code: string | null; flag_emoji: string | null; currency_code: string | null; is_active: boolean; sort_order: number }[] }>(
+      "/v1/admin/countries", params
+    ),
+  updateCountry: (id: number, data: { name?: string; phone_code?: string; flag_emoji?: string; currency_code?: string; is_active?: boolean; sort_order?: number }) =>
+    api.put<unknown>(`/v1/admin/countries/${id}`, data),
 };

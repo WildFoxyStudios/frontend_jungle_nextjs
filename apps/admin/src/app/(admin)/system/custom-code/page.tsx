@@ -45,7 +45,7 @@ export default function CustomCodePage() {
           <CardContent>
             <Label className="text-xs text-muted-foreground mb-2 block">Injected before &lt;/head&gt; — use for analytics, meta tags, CSS</Label>
             <textarea
-              className="w-full min-h-[160px] rounded-md border border-input bg-background px-3 py-2 text-sm font-mono"
+              className="w-full min-h-[160px] border bg-background px-3 py-2 text-sm font-mono"
               value={headerCode}
               onChange={(e) => setHeaderCode(e.target.value)}
               placeholder="<!-- Google Analytics, custom CSS, etc. -->"
@@ -58,7 +58,7 @@ export default function CustomCodePage() {
           <CardContent>
             <Label className="text-xs text-muted-foreground mb-2 block">Injected before &lt;/body&gt; — use for scripts, chat widgets</Label>
             <textarea
-              className="w-full min-h-[160px] rounded-md border border-input bg-background px-3 py-2 text-sm font-mono"
+              className="w-full min-h-[160px] border bg-background px-3 py-2 text-sm font-mono"
               value={footerCode}
               onChange={(e) => setFooterCode(e.target.value)}
               placeholder="<!-- Intercom, Crisp, custom JS, etc. -->"

@@ -44,4 +44,24 @@ export const groupsApi = {
     api.upload<{ cover: string }>(`/v1/groups/${id}/cover`, formData),
   getBoostedPages: (cursor?: string) =>
     api.get<PaginatedResponse<Page>>("/v1/boosted/pages", { cursor }),
+
+  /**
+   * Plan §3.5 G1 — owner-only analytics dashboard for a group.
+   * Backend enforces admin/owner role; callers without access get 403.
+   */
+  getAnalytics: (id: number) =>
+    api.get<{
+      analytics: {
+        total_members: number;
+        new_members_last_7d: number;
+        new_members_last_30d: number;
+        total_posts: number;
+        posts_last_7d: number;
+        posts_last_30d: number;
+        total_reactions: number;
+        total_comments: number;
+        pending_join_requests: number;
+      };
+      timeseries: Array<{ day: string; count: number }>;
+    }>(`/v1/groups/${id}/analytics`),
 };

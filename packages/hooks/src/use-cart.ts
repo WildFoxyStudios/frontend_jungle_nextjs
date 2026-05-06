@@ -1,40 +1,101 @@
 "use client";
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useCallback, useEffect, useState } from "react";
 import { commerceApi } from "@jungle/api-client";
+import type { Cart } from "@jungle/api-client";
 
+type MutateOpts = { onSuccess?: () => void; onError?: (err?: unknown) => void };
+
+/**
+ * Cart CRUD without React Query — works without `QueryClientProvider` on web.
+ */
 export function useCart() {
-  const qc = useQueryClient();
+  const [cart, setCart] = useState<Cart | undefined>(undefined);
+  const [isLoading, setIsLoading] = useState(true);
+  const [addPending, setAddPending] = useState(false);
+  const [removePending, setRemovePending] = useState(false);
+  const [updatePending, setUpdatePending] = useState(false);
 
-  const query = useQuery({
-    queryKey: ["cart"],
-    queryFn: () => commerceApi.getCart(),
-    staleTime: 30_000,
-  });
+  const refresh = useCallback(async () => {
+    try {
+      setCart(await commerceApi.getCart());
+    } catch {
+      setCart(undefined);
+    }
+  }, []);
 
-  const addItem = useMutation({
-    mutationFn: ({ productId, qty }: { productId: number; qty: number }) =>
-      commerceApi.addToCart(productId, qty),
-    onSuccess: () => void qc.invalidateQueries({ queryKey: ["cart"] }),
-  });
+  useEffect(() => {
+    let cancelled = false;
+    setIsLoading(true);
+    refresh().finally(() => {
+      if (!cancelled) setIsLoading(false);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [refresh]);
 
-  const updateItem = useMutation({
-    mutationFn: ({ id, qty }: { id: number; qty: number }) =>
-      commerceApi.updateCartItem(id, qty),
-    onSuccess: () => void qc.invalidateQueries({ queryKey: ["cart"] }),
-  });
+  const addItem = {
+    isPending: addPending,
+    mutate: (vars: { productId: number; qty: number }, opts?: MutateOpts) => {
+      void (async () => {
+        setAddPending(true);
+        try {
+          const next = await commerceApi.addToCart(vars.productId, vars.qty);
+          setCart(next);
+          opts?.onSuccess?.();
+        } catch (e) {
+          opts?.onError?.(e);
+        } finally {
+          setAddPending(false);
+        }
+      })();
+    },
+  };
 
-  const removeItem = useMutation({
-    mutationFn: (id: number) => commerceApi.removeFromCart(id),
-    onSuccess: () => void qc.invalidateQueries({ queryKey: ["cart"] }),
-  });
+  const updateItem = {
+    isPending: updatePending,
+    mutate: (vars: { id: number; qty: number }, opts?: MutateOpts) => {
+      void (async () => {
+        setUpdatePending(true);
+        try {
+          const next = await commerceApi.updateCartItem(vars.id, vars.qty);
+          setCart(next);
+          opts?.onSuccess?.();
+        } catch (e) {
+          opts?.onError?.(e);
+        } finally {
+          setUpdatePending(false);
+        }
+      })();
+    },
+  };
+
+  const removeItem = {
+    isPending: removePending,
+    mutate: (id: number, opts?: MutateOpts) => {
+      void (async () => {
+        setRemovePending(true);
+        try {
+          const next = await commerceApi.removeFromCart(id);
+          setCart(next);
+          opts?.onSuccess?.();
+        } catch (e) {
+          opts?.onError?.(e);
+        } finally {
+          setRemovePending(false);
+        }
+      })();
+    },
+  };
 
   return {
-    cart: query.data,
-    isLoading: query.isLoading,
+    cart,
+    isLoading,
     addItem,
     updateItem,
     removeItem,
-    itemCount: query.data?.items.length ?? 0,
+    itemCount: cart?.items.length ?? 0,
+    refetch: refresh,
   };
 }

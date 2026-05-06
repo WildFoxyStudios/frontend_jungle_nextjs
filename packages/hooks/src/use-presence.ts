@@ -7,5 +7,7 @@ export function usePresence(userId: number): boolean {
 }
 
 export function useOnlineUsers(): Set<number> {
-  return useRealtimeStore((s) => s.onlineUsers);
+  const onlineUsers = useRealtimeStore((s) => s.onlineUsers);
+  // Return a snapshot to prevent accidental mutation of the store's Set
+  return new Set(onlineUsers);
 }

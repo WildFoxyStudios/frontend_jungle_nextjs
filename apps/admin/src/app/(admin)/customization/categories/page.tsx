@@ -100,9 +100,9 @@ export default function CategoriesPage() {
           {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
         </div>
       ) : (
-        <div className="border rounded-lg divide-y">
+        <div className="border bg-card divide-y-2 divide-foreground shadow-sm">
           {(categories ?? []).length === 0 && (
-            <p className="text-center text-muted-foreground py-8 text-sm">
+            <p className="text-center text-muted-foreground py-8 text-sm font-bold uppercase tracking-wide">
               No {selectedType} categories yet.
             </p>
           )}

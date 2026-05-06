@@ -3,13 +3,36 @@ export interface AuthUser {
   uuid: string;
   username: string;
   email: string;
+  phone?: string;
   first_name: string;
   last_name: string;
   name: string;
   avatar: string;
+  cover?: string;
+  about?: string;
+  gender?: string;
+  birthday?: string;
+  location?: string;
+  website?: string;
+  school?: string;
+  working?: string;
+  working_link?: string;
+  social_links?: {
+    facebook?: string;
+    twitter?: string;
+    linkedin?: string;
+    instagram?: string;
+    youtube?: string;
+    github?: string;
+    vk?: string;
+    tiktok?: string;
+    website?: string;
+  };
   is_verified: boolean;
   is_pro: number;
   is_admin: boolean;
+  /** Site moderator (PHP `admin = 2`); may open admin panel. */
+  is_moderator?: boolean;
   two_factor_enabled: boolean;
   email_verified: boolean;
   /**
@@ -36,6 +59,7 @@ export interface User {
   website?: string;
   location?: string;
   working?: string;
+  working_link?: string;
   school?: string;
   two_factor_enabled?: boolean;
   email_verified?: boolean;
@@ -43,8 +67,10 @@ export interface User {
   is_pro: number;
   is_online: boolean;
   is_admin: boolean;
+  is_moderator?: boolean;
   is_banned: boolean;
   is_following?: boolean;
+  is_following_me?: boolean;
   is_blocked?: boolean;
   is_muted?: boolean;
   open_to_work?: { title: string; skills: string[] } | null;
@@ -120,9 +146,9 @@ export interface UserSkill {
 }
 
 export interface CustomProfileField {
-  id: number;
-  name: string;
-  type: "text" | "url" | "date" | "select";
+  field_id: number;
+  field_name: string;
+  field_type: "text" | "url" | "date" | "select";
   value: string;
 }
 

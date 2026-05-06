@@ -40,7 +40,7 @@ export function SettingsForm({ title, fields, initialValues = {}, onSave }: Sett
   return (
     <Card>
       <CardContent className="p-6 space-y-4">
-        <h2 className="font-semibold">{title}</h2>
+        <h2 className="font-extrabold uppercase tracking-wide">{title}</h2>
         {fields.map((field) => (
           <div key={field.key} className="space-y-1.5">
             <Label htmlFor={field.key}>{field.label}</Label>
@@ -73,7 +73,7 @@ export function SettingsForm({ title, fields, initialValues = {}, onSave }: Sett
             ) : field.type === "textarea" ? (
               <textarea
                 id={field.key}
-                className="w-full min-h-[100px] rounded-md border border-input bg-background px-3 py-2 text-sm"
+                className="w-full min-h-[100px] border bg-background px-3 py-2 text-sm"
                 placeholder={field.placeholder}
                 value={String(values[field.key] ?? "")}
                 onChange={(e) => set(field.key, e.target.value)}

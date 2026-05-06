@@ -1,8 +1,8 @@
-﻿"use client";
+"use client";
 import { useRef, useState } from "react";
 import { adminApi } from "@jungle/api-client";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
-import { Button, Card, CardContent, Progress } from "@jungle/ui";
+import { Card, CardContent, Progress } from "@jungle/ui";
 import { toast } from "sonner";
 import { Upload } from "lucide-react";
 
@@ -40,7 +40,7 @@ export default function UploadStoragePage() {
       <Card className="max-w-lg">
         <CardContent className="p-6 space-y-4">
           <div
-            className="border-2 border-dashed rounded-lg p-8 text-center cursor-pointer hover:border-primary transition-colors"
+            className="border-2 border-dashed border-foreground bg-secondary/40 p-8 text-center cursor-pointer hover:bg-secondary/60 transition-colors"
             onClick={() => fileRef.current?.click()}
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => { e.preventDefault(); if (e.dataTransfer.files.length) handleUpload(e.dataTransfer.files); }}

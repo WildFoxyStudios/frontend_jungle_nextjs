@@ -69,11 +69,18 @@ export function validateVideo(file: File): Promise<VideoMeta> {
     }
 
     const url = URL.createObjectURL(file);
+    let settled = false;
+    const cleanup = () => { URL.revokeObjectURL(url); video.remove(); };
+    const fail = (err: Error) => { if (settled) return; settled = true; cleanup(); reject(err); };
+    const timeout = setTimeout(() => fail(new Error("Video validation timed out")), 15000);
     const video = document.createElement("video");
 
     video.preload = "metadata";
     video.onloadedmetadata = () => {
-      URL.revokeObjectURL(url);
+      clearTimeout(timeout);
+      if (settled) return;
+      settled = true;
+      cleanup();
       if (video.duration > MAX_VIDEO_DURATION) {
         reject(new Error("Video must be under 5 minutes"));
         return;
@@ -87,8 +94,8 @@ export function validateVideo(file: File): Promise<VideoMeta> {
       });
     };
     video.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error("Could not read video metadata"));
+      clearTimeout(timeout);
+      fail(new Error("Could not read video metadata"));
     };
     video.src = url;
   });
@@ -102,6 +109,9 @@ export function generateThumbnail(file: File, size = 320): Promise<Blob> {
     const url = URL.createObjectURL(file);
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
+    let settled = false;
+    const cleanup = () => { URL.revokeObjectURL(url); };
+    const fail = (err: Error) => { if (settled) return; settled = true; cleanup(); reject(err); };
 
     if (!ctx) {
       URL.revokeObjectURL(url);
@@ -112,10 +122,14 @@ export function generateThumbnail(file: File, size = 320): Promise<Blob> {
     if (file.type.startsWith("video/")) {
       const video = document.createElement("video");
       video.preload = "metadata";
+      const vidTimeout = setTimeout(() => fail(new Error("Thumbnail generation timed out")), 15000);
       video.onloadeddata = () => {
         video.currentTime = 1;
       };
       video.onseeked = () => {
+        clearTimeout(vidTimeout);
+        if (settled) return;
+        settled = true;
         canvas.width = size;
         canvas.height = Math.round((video.videoHeight / video.videoWidth) * size);
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
@@ -126,13 +140,18 @@ export function generateThumbnail(file: File, size = 320): Promise<Blob> {
         }, "image/webp");
       };
       video.onerror = () => {
+        clearTimeout(vidTimeout);
         URL.revokeObjectURL(url);
         reject(new Error("Failed to load video"));
       };
       video.src = url;
     } else {
       const img = new Image();
+      const imgTimeout = setTimeout(() => fail(new Error("Thumbnail generation timed out")), 15000);
       img.onload = () => {
+        clearTimeout(imgTimeout);
+        if (settled) return;
+        settled = true;
         canvas.width = size;
         canvas.height = Math.round((img.height / img.width) * size);
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);

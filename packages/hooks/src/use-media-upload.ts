@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { compressImage, validateVideo } from "@jungle/utils";
 import type { ImagePreset } from "@jungle/utils";
 import { api } from "@jungle/api-client";
@@ -39,61 +39,89 @@ export function useMediaUpload() {
     error: null,
   });
 
+  const abortedRef = useRef(false);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      abortedRef.current = true;
+    };
+  }, []);
+
+  const abort = useCallback(() => {
+    abortedRef.current = true;
+  }, []);
+
+  const safeSetState = useCallback((updater: UploadState | ((prev: UploadState) => UploadState)) => {
+    if (!abortedRef.current && mountedRef.current) {
+      setState(updater);
+    }
+  }, []);
+
   const uploadImage = useCallback(
     async (file: File, preset: ImagePreset, path = "/v1/media/upload"): Promise<MediaItem | null> => {
-      setState({ progress: 0, processingProgress: 0, phase: "processing", isUploading: true, error: null });
+      abortedRef.current = false;
+      safeSetState({ progress: 0, processingProgress: 0, phase: "processing", isUploading: true, error: null });
       try {
         const compressed = await compressImage(file, preset);
-        setState((s) => ({ ...s, phase: "uploading", processingProgress: 100 }));
+        if (abortedRef.current) return null;
+        safeSetState((s) => ({ ...s, phase: "uploading", processingProgress: 100 }));
 
         const formData = new FormData();
         formData.append("file", compressed);
         formData.append("type", "image");
 
         const result = await api.upload<unknown>(path, formData, (pct) => {
-          setState((s) => ({ ...s, progress: pct }));
+          if (!abortedRef.current) setState((s) => ({ ...s, progress: pct }));
         });
 
-        setState({ progress: 100, processingProgress: 100, phase: "idle", isUploading: false, error: null });
+        safeSetState({ progress: 100, processingProgress: 100, phase: "idle", isUploading: false, error: null });
         return toMediaItem(result);
       } catch (err) {
+        if (abortedRef.current) return null;
         const message = err instanceof Error ? err.message : "Upload failed";
-        setState({ progress: 0, processingProgress: 0, phase: "idle", isUploading: false, error: message });
+        safeSetState({ progress: 0, processingProgress: 0, phase: "idle", isUploading: false, error: message });
         return null;
       }
     },
-    [],
+    [safeSetState],
   );
 
   const uploadVideo = useCallback(
     async (file: File, path = "/v1/media/upload"): Promise<MediaItem | null> => {
-      setState({ progress: 0, processingProgress: 0, phase: "processing", isUploading: true, error: null });
+      abortedRef.current = false;
+      safeSetState({ progress: 0, processingProgress: 0, phase: "processing", isUploading: true, error: null });
       try {
         await validateVideo(file);
-        setState((s) => ({ ...s, phase: "uploading", processingProgress: 100 }));
+        if (abortedRef.current) return null;
+        safeSetState((s) => ({ ...s, phase: "uploading", processingProgress: 100 }));
 
         const formData = new FormData();
         formData.append("file", file);
         formData.append("type", "video");
 
         const result = await api.upload<unknown>(path, formData, (pct) => {
-          setState((s) => ({ ...s, progress: pct }));
+          if (!abortedRef.current) setState((s) => ({ ...s, progress: pct }));
         });
 
-        setState({ progress: 100, processingProgress: 100, phase: "idle", isUploading: false, error: null });
+        safeSetState({ progress: 100, processingProgress: 100, phase: "idle", isUploading: false, error: null });
         return toMediaItem(result);
       } catch (err) {
+        if (abortedRef.current) return null;
         const message = err instanceof Error ? err.message : "Upload failed";
-        setState({ progress: 0, processingProgress: 0, phase: "idle", isUploading: false, error: message });
+        safeSetState({ progress: 0, processingProgress: 0, phase: "idle", isUploading: false, error: message });
         return null;
       }
     },
-    [],
+    [safeSetState],
   );
 
   const uploadAny = useCallback(
     async (file: File, path = "/v1/media/upload"): Promise<MediaItem | null> => {
-      setState({ progress: 0, processingProgress: 0, phase: "processing", isUploading: true, error: null });
+      abortedRef.current = false;
+      safeSetState({ progress: 0, processingProgress: 0, phase: "processing", isUploading: true, error: null });
       try {
         let processedFile = file;
         let fileType = "document";
@@ -108,26 +136,28 @@ export function useMediaUpload() {
           fileType = "audio";
         }
 
-        setState((s) => ({ ...s, phase: "uploading", processingProgress: 100 }));
+        if (abortedRef.current) return null;
+        safeSetState((s) => ({ ...s, phase: "uploading", processingProgress: 100 }));
 
         const formData = new FormData();
         formData.append("file", processedFile);
         formData.append("type", fileType);
 
         const result = await api.upload<unknown>(path, formData, (pct) => {
-          setState((s) => ({ ...s, progress: pct }));
+          if (!abortedRef.current) setState((s) => ({ ...s, progress: pct }));
         });
 
-        setState({ progress: 100, processingProgress: 100, phase: "idle", isUploading: false, error: null });
+        safeSetState({ progress: 100, processingProgress: 100, phase: "idle", isUploading: false, error: null });
         return toMediaItem(result);
       } catch (err) {
+        if (abortedRef.current) return null;
         const message = err instanceof Error ? err.message : "Upload failed";
-        setState({ progress: 0, processingProgress: 0, phase: "idle", isUploading: false, error: message });
+        safeSetState({ progress: 0, processingProgress: 0, phase: "idle", isUploading: false, error: message });
         return null;
       }
     },
-    [],
+    [safeSetState],
   );
 
-  return { ...state, uploadImage, uploadVideo, uploadAny };
+  return { ...state, uploadImage, uploadVideo, uploadAny, abort };
 }

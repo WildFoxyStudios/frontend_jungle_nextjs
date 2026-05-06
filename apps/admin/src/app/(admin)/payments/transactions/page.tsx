@@ -29,13 +29,15 @@ export default function TransactionsPage() {
     queryFn: () => adminApi.getWithdrawals({ page: String(page) }),
   });
 
+  const total = data?.meta?.total ?? 0;
+
   return (
     <AdminPageShell title="Transactions">
       <DataTable
         data={(data?.data ?? []) as Transaction[]}
         columns={columns}
         isLoading={isLoading}
-        pagination={{ page, total: data?.meta.total ?? 0, perPage: 20, onPageChange: setPage }}
+        pagination={{ page, total, perPage: 20, onPageChange: setPage }}
       />
     </AdminPageShell>
   );

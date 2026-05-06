@@ -86,7 +86,7 @@ export default function SendEmailPage() {
       title="Send bulk email"
       description="Compose and enqueue an email campaign. Emails are sent asynchronously by newsletter_dispatcher."
     >
-      <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
+      <form onSubmit={(e) => { e.preventDefault(); handleSend(); }} className="grid gap-6 lg:grid-cols-[1fr_380px]">
         <Card>
           <CardHeader>
             <CardTitle>Message</CardTitle>
@@ -169,7 +169,7 @@ export default function SendEmailPage() {
           </Card>
 
           <Button
-            onClick={handleSend}
+            type="submit"
             disabled={mutation.isPending}
             className="w-full"
             size="lg"
@@ -185,7 +185,7 @@ export default function SendEmailPage() {
             )}
           </Button>
         </div>
-      </div>
+      </form>
     </AdminPageShell>
   );
 }

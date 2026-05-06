@@ -63,7 +63,7 @@ export default function CreateForumPage() {
             <Label htmlFor="f-section">Section</Label>
             <select
               id="f-section"
-              className="w-full rounded-md border px-3 py-2 text-sm bg-background"
+              className="w-full border bg-background px-3 py-2 text-sm"
               value={form.section_id}
               onChange={(e) => set("section_id", e.target.value)}
             >

@@ -32,6 +32,14 @@ export function formatDate(date: string | Date | null | undefined): string {
   });
 }
 
+/** Calendar day key in local TZ — for grouping lists (e.g. notifications) by day. */
+export function calendarDayKey(date: string | Date | null | undefined): string {
+  if (!date) return "";
+  const d = typeof date === "string" ? new Date(date) : date;
+  if (isNaN(d.getTime())) return "";
+  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+}
+
 export function formatDateTime(date: string | Date | null | undefined): string {
   if (!date) return "";
   const d = typeof date === "string" ? new Date(date) : date;

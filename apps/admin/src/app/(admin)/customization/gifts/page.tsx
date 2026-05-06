@@ -1,5 +1,5 @@
-﻿"use client";
-import { useRef } from "react";
+"use client";
+import { useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { adminApi } from "@jungle/api-client";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
@@ -13,17 +13,32 @@ interface Gift { id: number; name: string; media_file: string; created_at: strin
 export default function GiftsPage() {
   const qc = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
+  const [bulkProgress, setBulkProgress] = useState<{ done: number; total: number } | null>(null);
   const { data, isLoading } = useQuery({ queryKey: ["admin", "gifts"], queryFn: () => adminApi.getGifts() });
 
+  const uploadOne = async (file: File) => {
+    const fd = new FormData();
+    fd.append("media_file", file);
+    fd.append("name", file.name.replace(/\.\w+$/, ""));
+    return adminApi.createGift(fd);
+  };
+
   const uploadMutation = useMutation({
-    mutationFn: async (file: File) => {
-      const fd = new FormData();
-      fd.append("media_file", file);
-      fd.append("name", file.name.replace(/\.\w+$/, ""));
-      return adminApi.createGift(fd);
+    mutationFn: async (files: File[]) => {
+      setBulkProgress({ done: 0, total: files.length });
+      let i = 0;
+      for (const f of files) {
+        await uploadOne(f);
+        i += 1;
+        setBulkProgress({ done: i, total: files.length });
+      }
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin", "gifts"] }); toast.success("Gift added"); },
+    onSuccess: (_d, files) => {
+      qc.invalidateQueries({ queryKey: ["admin", "gifts"] });
+      toast.success(`${files.length} gift${files.length === 1 ? "" : "s"} added`);
+    },
     onError: () => toast.error("Upload failed"),
+    onSettled: () => setBulkProgress(null),
   });
 
   const deleteMutation = useMutation({
@@ -36,15 +51,29 @@ export default function GiftsPage() {
   return (
     <AdminPageShell title="Gifts" actions={
       <>
-        <input ref={fileRef} type="file" accept="image/*,video/*,image/gif" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadMutation.mutate(f); e.target.value = ""; }} />
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*,video/*,image/gif"
+          multiple
+          className="hidden"
+          onChange={(e) => {
+            const files = Array.from(e.target.files ?? []);
+            if (files.length > 0) uploadMutation.mutate(files);
+            e.target.value = "";
+          }}
+        />
         <Button size="sm" onClick={() => fileRef.current?.click()} disabled={uploadMutation.isPending}>
-          <Plus className="h-4 w-4 mr-1" /> Add Gift
+          <Plus className="h-4 w-4 mr-1" />
+          {bulkProgress
+            ? `Uploading ${bulkProgress.done}/${bulkProgress.total}…`
+            : "Add Gifts"}
         </Button>
       </>
     }>
       {isLoading ? (
         <div className="grid grid-cols-4 gap-4">
-          {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-24 rounded-lg" />)}
+          {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-24" />)}
         </div>
       ) : (
         <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">

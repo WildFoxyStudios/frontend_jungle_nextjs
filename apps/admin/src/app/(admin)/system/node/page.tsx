@@ -58,7 +58,7 @@ export default function NodePage() {
       {isLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-28 rounded-lg" />
+            <Skeleton key={i} className="h-28" />
           ))}
         </div>
       ) : (
@@ -112,8 +112,8 @@ export default function NodePage() {
             ].map(({ label, value }) => (
               <Card key={label}>
                 <CardContent className="p-4">
-                  <p className="text-xs text-muted-foreground">{label}</p>
-                  <p className="text-xl font-bold mt-1">{value}</p>
+                  <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">{label}</p>
+                  <p className="text-3xl font-extrabold tracking-tight mt-1">{value}</p>
                 </CardContent>
               </Card>
             ))}

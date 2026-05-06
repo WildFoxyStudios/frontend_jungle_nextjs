@@ -33,8 +33,8 @@ export default function PagesFieldsPage() {
       <Button size="sm" onClick={() => setOpen(true)}><Plus className="h-4 w-4 mr-1" /> Add Field</Button>
     }>
       {isLoading ? <Skeleton className="h-48 w-full" /> : (
-        <div className="border rounded-lg divide-y">
-          {fields.length === 0 && <p className="text-center text-muted-foreground py-8 text-sm">No custom fields for pages yet.</p>}
+        <div className="border bg-card divide-y-2 divide-foreground shadow-sm">
+          {fields.length === 0 && <p className="text-center text-muted-foreground py-8 text-sm font-bold uppercase tracking-wide">No custom fields for pages yet.</p>}
           {fields.map((f) => (
             <div key={f.id} className="flex items-center justify-between px-4 py-3">
               <div className="flex items-center gap-3">

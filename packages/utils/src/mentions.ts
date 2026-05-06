@@ -20,10 +20,17 @@ export function parseMentions(text: string): MentionMatch[] {
   return matches;
 }
 
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
 export function highlightMentions(text: string): string {
   return text.replace(
     MENTION_REGEX,
-    '<a href="/profile/$1" class="mention">@$1</a>',
+    (match, username) => {
+      const safe = escapeHtml(username);
+      return `<a href="/profile/${encodeURIComponent(safe)}" class="mention">@${safe}</a>`;
+    },
   );
 }
 

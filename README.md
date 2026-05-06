@@ -2,6 +2,13 @@
 
 A full-stack social network frontend monorepo built with Next.js 15, TypeScript, Tailwind CSS 4, and Turborepo.
 
+## Documentation
+
+- [Frontend docs index](./docs/README.md)
+- [Vercel deployment guide](./docs/vercel.md)
+- [Environment variables](./docs/environment.md)
+- [Production checklist](./docs/production-checklist.md)
+
 ## Structure
 
 ```
@@ -41,15 +48,23 @@ pnpm typecheck
 
 ## Environment Variables
 
-Copy `.env.example` to `.env.local` in each app:
+Copy the included env templates:
+
+```bash
+cp apps/web/.env.example apps/web/.env.local
+cp apps/admin/.env.example apps/admin/.env.local
+```
+
+Minimal production values:
 
 ```bash
 # apps/web/.env.local
-NEXT_PUBLIC_API_URL=http://localhost:8080
-NEXT_PUBLIC_WS_URL=ws://localhost:8080/ws
+BACKEND_URL=https://api.example.com
+NEXT_PUBLIC_APP_URL=https://app.example.com
 
 # apps/admin/.env.local
-NEXT_PUBLIC_API_URL=http://localhost:8080
+BACKEND_URL=https://api.example.com
+NEXT_PUBLIC_SITE_URL=https://app.example.com
 ```
 
 ## Tech Stack

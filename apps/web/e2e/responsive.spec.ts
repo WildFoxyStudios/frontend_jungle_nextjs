@@ -12,13 +12,22 @@ test.describe("Responsive Design", () => {
   test("desktop: sidebar visible", async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 });
     await page.goto("/feed");
-    await expect(page.locator('nav[aria-label="Main navigation"]')).toBeVisible();
+    await expect(page.getByTestId("main-nav-list")).toBeVisible();
   });
 
-  test("mobile: bottom nav visible, sidebar hidden", async ({ page }) => {
+  test("mobile: no fixed bottom nav, hamburger menu visible", async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 812 });
     await page.goto("/feed");
-    await expect(page.locator('nav[aria-label="Mobile navigation"]')).toBeVisible();
+    await expect(page.getByRole("button", { name: "Main menu" })).toBeVisible();
+    await expect(page.locator("nav.fixed.bottom-0")).toHaveCount(0);
+  });
+
+  test("mobile: hamburger opens main navigation sheet", async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 812 });
+    await page.goto("/feed");
+    await page.getByRole("button", { name: "Main menu" }).click();
+    await expect(page.getByRole("dialog")).toBeVisible();
+    await expect(page.getByRole("link", { name: "Feed" }).first()).toBeVisible();
   });
 
   test("tablet: layout adjusts", async ({ page }) => {

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
@@ -12,136 +12,140 @@ import { useTranslations } from "next-intl";
 type EventTab = "upcoming" | "attending" | "mine";
 
 export default function EventsPage() {
-  const [tab, setTab] = useState<EventTab>("upcoming");
-  const t = useTranslations("events");
+ const [tab, setTab] = useState<EventTab>("upcoming");
+ const t = useTranslations("events");
 
-  return (
-    <div className="max-w-4xl mx-auto px-4 py-4 space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">{t("title")}</h1>
-        <Button asChild className="gap-1.5">
-          <Link href="/events/create">
-            <CalendarPlus className="h-4 w-4" />
-            {t("createEvent")}
-          </Link>
-        </Button>
-      </div>
+ return (
+ <div className="mx-auto max-w-4xl space-y-4 px-3 py-4 sm:px-4">
+ <div className="flex items-center justify-between">
+ <h1 className="text-2xl font-bold sm:text-[28px]">{t("title")}</h1>
+ <Button asChild className="gap-1.5">
+ <Link href="/events/create">
+ <CalendarPlus className="h-4 w-4" />
+ {t("createEvent")}
+ </Link>
+ </Button>
+ </div>
 
-      <Tabs value={tab} onValueChange={(v) => setTab(v as EventTab)}>
-        <TabsList className="grid grid-cols-3 max-w-md">
-          <TabsTrigger value="upcoming" className="gap-1.5">
-            <CalendarDays className="h-4 w-4" /> Upcoming
-          </TabsTrigger>
-          <TabsTrigger value="attending" className="gap-1.5">
-            <CalendarCheck className="h-4 w-4" /> Attending
-          </TabsTrigger>
-          <TabsTrigger value="mine" className="gap-1.5">
-            <User className="h-4 w-4" /> My events
-          </TabsTrigger>
-        </TabsList>
+ <Tabs value={tab} onValueChange={(v) => setTab(v as EventTab)}>
+ <TabsList className="grid w-full max-w-md grid-cols-3">
+ <TabsTrigger value="upcoming" className="gap-1.5">
+ <CalendarDays className="h-4 w-4" /> Upcoming
+ </TabsTrigger>
+ <TabsTrigger value="attending" className="gap-1.5">
+ <CalendarCheck className="h-4 w-4" /> Attending
+ </TabsTrigger>
+ <TabsTrigger value="mine" className="gap-1.5">
+ <User className="h-4 w-4" /> My events
+ </TabsTrigger>
+ </TabsList>
 
-        <TabsContent value="upcoming" className="mt-4">
-          <EventList
-            fetcher={(cursor) => eventsApi.getUpcoming(cursor)}
-            emptyMessage="No upcoming events right now."
-          />
-        </TabsContent>
-        <TabsContent value="attending" className="mt-4">
-          <EventList
-            fetcher={(cursor) => eventsApi.getAttending(cursor)}
-            emptyMessage="You haven't RSVP'd to any events yet."
-          />
-        </TabsContent>
-        <TabsContent value="mine" className="mt-4">
-          <EventList
-            fetcher={(cursor) => eventsApi.getMyEvents(cursor)}
-            emptyMessage="You haven't created any events yet."
-          />
-        </TabsContent>
-      </Tabs>
-    </div>
-  );
+ <TabsContent value="upcoming" className="mt-4">
+ <EventList
+ fetcher={(cursor) => eventsApi.getUpcoming(cursor)}
+ emptyMessage="No upcoming events right now."
+ />
+ </TabsContent>
+ <TabsContent value="attending" className="mt-4">
+ <EventList
+ fetcher={(cursor) => eventsApi.getAttending(cursor)}
+ emptyMessage="You haven't RSVP'd to any events yet."
+ />
+ </TabsContent>
+ <TabsContent value="mine" className="mt-4">
+ <EventList
+ fetcher={(cursor) => eventsApi.getMyEvents(cursor)}
+ emptyMessage="You haven't created any events yet."
+ />
+ </TabsContent>
+ </Tabs>
+ </div>
+ );
 }
 
 interface EventListProps {
-  fetcher: (cursor?: string) => Promise<{ data: Event[]; meta?: { cursor?: string | null; has_more?: boolean } }>;
-  emptyMessage: string;
+ fetcher: (cursor?: string) => Promise<{ data: Event[]; meta?: { cursor?: string | null; has_more?: boolean } }>;
+ emptyMessage: string;
 }
 
 function EventList({ fetcher, emptyMessage }: EventListProps) {
-  const [events, setEvents] = useState<Event[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [cursor, setCursor] = useState<string | null | undefined>(undefined);
-  const [hasMore, setHasMore] = useState(false);
-  const t = useTranslations("events");
+ const [events, setEvents] = useState<Event[]>([]);
+ const [loading, setLoading] = useState(true);
+ const [loadingMore, setLoadingMore] = useState(false);
+ const [cursor, setCursor] = useState<string | null | undefined>(undefined);
+ const [hasMore, setHasMore] = useState(false);
+ const t = useTranslations("events");
 
-  const load = useCallback(
-    async (reset: boolean) => {
-      if (reset) setLoading(true);
-      else setLoadingMore(true);
-      try {
-        const nextCursor = reset ? undefined : cursor ?? undefined;
-        const res = await fetcher(nextCursor);
-        const list = Array.isArray(res?.data) ? res.data : [];
-        setEvents((prev) => (reset ? list : [...prev, ...list]));
-        setCursor(res?.meta?.cursor ?? null);
-        setHasMore(Boolean(res?.meta?.has_more));
-      } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Failed to load events");
-      } finally {
-        setLoading(false);
-        setLoadingMore(false);
-      }
-    },
-    [fetcher, cursor],
-  );
+ const load = useCallback(
+ async (reset: boolean) => {
+ if (reset) setLoading(true);
+ else setLoadingMore(true);
+ try {
+ const nextCursor = reset ? undefined : cursor ?? undefined;
+ const res = await fetcher(nextCursor);
+ const list = Array.isArray(res?.data) ? res.data : [];
+ setEvents((prev) => (reset ? list : [...prev, ...list]));
+ setCursor(res?.meta?.cursor ?? null);
+ setHasMore(Boolean(res?.meta?.has_more));
+ } catch (err) {
+ toast.error(err instanceof Error ? err.message : "Failed to load events");
+ } finally {
+ setLoading(false);
+ setLoadingMore(false);
+ }
+ },
+ [fetcher, cursor],
+ );
 
-  useEffect(() => {
-    void load(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fetcher]);
+ useEffect(() => {
+ void load(true);
+ // eslint-disable-next-line react-hooks/exhaustive-deps
+ }, [fetcher]);
 
-  if (loading) {
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <Skeleton key={i} className="h-24 w-full" />
-        ))}
-      </div>
-    );
-  }
+ if (loading) {
+ return (
+ <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+ {Array.from({ length: 4 }).map((_, i) => (
+ <Skeleton key={i} className="h-24 w-full" />
+ ))}
+ </div>
+ );
+ }
 
-  if (events.length === 0) {
-    return <p className="text-center py-12 text-muted-foreground italic">{emptyMessage}</p>;
-  }
+ if (events.length === 0) {
+ return (
+ <div className="py-12 text-center">
+ <p className="font-medium text-muted-foreground">{emptyMessage}</p>
+ </div>
+ );
+ }
 
-  return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {events.map((e) => (
-          <Card key={e.id}>
-            <CardContent className="p-4">
-              <Link href={`/events/${e.id}`} className="font-semibold hover:underline">
-                {e.title}
-              </Link>
-              <p className="text-xs text-muted-foreground mt-1">
-                {new Date(e.start_date).toLocaleDateString()} · {e.location}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {e.going_count} {t("going")} · {e.interested_count} {t("interested")}
-              </p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-      {hasMore && (
-        <div className="flex justify-center">
-          <Button variant="outline" onClick={() => load(false)} disabled={loadingMore}>
-            {loadingMore ? "Loading…" : "Load more"}
-          </Button>
-        </div>
-      )}
-    </div>
-  );
+ return (
+ <div className="space-y-4">
+ <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+ {events.map((e) => (
+ <Card key={e.id} className="transition-colors hover:bg-muted/50">
+ <CardContent className="p-4">
+ <Link href={`/events/${e.id}`} className="text-base font-semibold hover:underline">
+ {e.title}
+ </Link>
+ <p className="mt-1 text-[13px] font-medium text-muted-foreground">
+ {new Date(e.start_date).toLocaleDateString()} · {e.location}
+ </p>
+ <p className="text-[13px] font-medium text-muted-foreground">
+ {e.going_count} {t("going")} · {e.interested_count} {t("interested")}
+ </p>
+ </CardContent>
+ </Card>
+ ))}
+ </div>
+ {hasMore && (
+ <div className="flex justify-center">
+ <Button variant="outline" onClick={() => load(false)} disabled={loadingMore}>
+ {loadingMore ? "Loading…" : "Load more"}
+ </Button>
+ </div>
+ )}
+ </div>
+ );
 }

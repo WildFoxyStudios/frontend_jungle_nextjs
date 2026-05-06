@@ -7,7 +7,7 @@ export default function LiveSettingsPage() {
   return (
     <AdminPageShell
       title="Live streaming"
-      description="Pick the provider (RTMP ingest, Agora, or Millicast) and configure concurrency caps and recording."
+      description="Configure self-hosted WebRTC signaling, STUN/TURN, and provider fallbacks for live streams, audio calls, and video calls."
     >
       <CatalogSettingsForm category="live" />
     </AdminPageShell>

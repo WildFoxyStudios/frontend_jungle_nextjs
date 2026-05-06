@@ -15,6 +15,7 @@
     "incremental": true,
     "plugins": [{ "name": "next" }],
     "baseUrl": ".",
+    "ignoreDeprecations": "6.0",
     "paths": {
       "@/*": ["./src/*"],
       "react-hook-form": ["./node_modules/react-hook-form/dist/index.d.ts"]

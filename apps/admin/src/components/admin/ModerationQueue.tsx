@@ -51,9 +51,9 @@ export function ModerationQueue({
 
   if (items.length === 0) {
     return (
-      <div className="text-center py-12 text-muted-foreground">
+      <div className="border bg-card py-12 text-center shadow-sm">
         <CheckCircle className="h-12 w-12 mx-auto mb-3 opacity-50" />
-        <p>No items in queue.</p>
+        <p className="font-bold uppercase tracking-wide text-muted-foreground">No items in queue.</p>
       </div>
     );
   }
@@ -98,8 +98,8 @@ export function ModerationQueue({
   return (
     <div className="space-y-3">
       {enableBatchActions && selectedIds.size > 0 && (
-        <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
-          <span className="text-sm font-medium">{selectedIds.size} selected</span>
+        <div className="flex items-center gap-2 p-3 border bg-secondary/40 shadow-xs">
+          <span className="text-sm font-bold uppercase tracking-wide">{selectedIds.size} selected</span>
           <div className="flex-1" />
           {onApprove && (
             <Button size="sm" onClick={handleBatchApprove} disabled={batchProcessing}>
@@ -190,9 +190,9 @@ export function ModerationQueue({
           {previewItem && (
             <div className="space-y-4">
               {previewItem.type && <Badge>{previewItem.type}</Badge>}
-              {previewItem.title && <h3 className="font-semibold">{previewItem.title}</h3>}
+              {previewItem.title && <h3 className="font-extrabold uppercase tracking-wide">{previewItem.title}</h3>}
               {previewItem.content && (
-                <div className="text-sm whitespace-pre-wrap bg-muted p-4 rounded-md">
+                <div className="text-sm whitespace-pre-wrap border bg-secondary/40 p-4">
                   {previewItem.content}
                 </div>
               )}

@@ -1,9 +1,10 @@
-﻿"use client";
+"use client";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { adminApi } from "@jungle/api-client";
+import { adminApi, cursorPagerTotal } from "@jungle/api-client";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
 import { DataTable } from "@/components/data-table/DataTable";
+import { useAdminCursorPages } from "@/hooks/useAdminCursorPages";
 import { Badge, Button, ConfirmDialog } from "@jungle/ui";
 import { toast } from "sonner";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -15,18 +16,23 @@ type ProMember = { id: number } & Record<string, unknown>;
 
 export default function ProMembersPage() {
   const qc = useQueryClient();
-  const [page, setPage] = useState(1);
+  const { sentCursor, page, goToPage, reset } = useAdminCursorPages();
   const [pendingRemove, setPendingRemove] = useState<ProMember | null>(null);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["admin", "pro-members", page],
-    queryFn: () => adminApi.getProMembers({ page: String(page) }),
+    queryKey: ["admin", "pro-members", sentCursor ?? "head"],
+    queryFn: () =>
+      adminApi.getProMembers({
+        limit: "20",
+        ...(sentCursor ? { cursor: sentCursor } : {}),
+      }),
   });
 
   const removePro = useMutation({
     mutationFn: (id: number) => adminApi.removeUserPro(id),
     onSuccess: () => {
       toast.success("Pro membership removed");
+      reset();
       qc.invalidateQueries({ queryKey: ["admin", "pro-members"] });
     },
     onError: () => toast.error("Failed to remove Pro"),
@@ -68,8 +74,8 @@ export default function ProMembersPage() {
       cell: ({ row }) => (
         <Button
           size="sm"
-          variant="ghost"
-          className="text-xs text-destructive hover:text-destructive"
+          variant="destructive"
+          className="text-xs"
           onClick={() => setPendingRemove(row.original)}
         >
           Remove Pro
@@ -85,7 +91,14 @@ export default function ProMembersPage() {
         columns={columns}
         isLoading={isLoading}
         searchPlaceholder="Search pro members…"
-        pagination={data ? { page, total: data.meta.total ?? 0, perPage: 20, onPageChange: setPage } : undefined}
+        pagination={data
+          ? {
+              page,
+              total: cursorPagerTotal(page, 20, data.data.length, data.meta.has_more, data.meta.total),
+              perPage: 20,
+              onPageChange: (n) => goToPage(n, data.meta.cursor),
+            }
+          : undefined}
       />
 
       <ConfirmDialog

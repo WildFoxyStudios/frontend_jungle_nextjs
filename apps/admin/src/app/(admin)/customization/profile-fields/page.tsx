@@ -1,11 +1,12 @@
-﻿"use client";
+"use client";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { adminApi } from "@jungle/api-client";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
 import { Button, Input, Label, Badge, Skeleton, Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@jungle/ui";
 import { toast } from "sonner";
-import { Plus, Trash2 } from "lucide-react";
+import Link from "next/link";
+import { Plus, Trash2, Edit2 } from "lucide-react";
 
 interface ProfileField { id: number; name: string; field_type: string; required: boolean; active: boolean }
 
@@ -33,8 +34,8 @@ export default function ProfileFieldsPage() {
       <Button size="sm" onClick={() => setOpen(true)}><Plus className="h-4 w-4 mr-1" /> Add Field</Button>
     }>
       {isLoading ? <Skeleton className="h-48 w-full" /> : (
-        <div className="border rounded-lg divide-y">
-          {fields.length === 0 && <p className="text-center text-muted-foreground py-8 text-sm">No custom fields yet.</p>}
+        <div className="border bg-card divide-y-2 divide-foreground shadow-sm">
+          {fields.length === 0 && <p className="text-center text-muted-foreground py-8 text-sm font-bold uppercase tracking-wide">No custom fields yet.</p>}
           {fields.map((f) => (
             <div key={f.id} className="flex items-center justify-between px-4 py-3">
               <div className="flex items-center gap-3">
@@ -43,9 +44,21 @@ export default function ProfileFieldsPage() {
                 {f.required && <Badge variant="outline">Required</Badge>}
                 {!f.active && <Badge variant="secondary">Inactive</Badge>}
               </div>
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => deleteMutation.mutate(f.id)}>
-                <Trash2 className="h-3.5 w-3.5" />
-              </Button>
+              <div className="flex items-center gap-1">
+                <Link href={`/customization/profile-fields/${f.id}/edit`}>
+                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <Edit2 className="h-3.5 w-3.5" />
+                  </Button>
+                </Link>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-destructive"
+                  onClick={() => deleteMutation.mutate(f.id)}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              </div>
             </div>
           ))}
         </div>

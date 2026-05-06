@@ -45,7 +45,7 @@ export default function ForumsPage() {
           <Button asChild size="sm" variant="ghost">
             <Link href={`/content/forums/${row.original.id}/edit`}><Pencil className="h-3.5 w-3.5" /></Link>
           </Button>
-          <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => setPendingDelete(row.original)}>
+          <Button size="sm" variant="destructive" onClick={() => setPendingDelete(row.original)}>
             <Trash2 className="h-3.5 w-3.5" />
           </Button>
         </div>

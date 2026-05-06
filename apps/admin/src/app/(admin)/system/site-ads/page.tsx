@@ -61,7 +61,7 @@ export default function SiteAdsPage() {
                 <SelectContent>{["sidebar", "header", "footer", "feed", "between-posts"].map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
               </Select>
             </div>
-            <div className="space-y-1"><Label>Ad Code (HTML/JS)</Label><textarea className="w-full min-h-[100px] rounded-md border border-input bg-background px-3 py-2 text-sm font-mono" value={form.code} onChange={(e) => setForm((f) => ({ ...f, code: e.target.value }))} placeholder="<script>...</script>" /></div>
+            <div className="space-y-1"><Label>Ad Code (HTML/JS)</Label><textarea className="w-full min-h-[100px] border bg-background px-3 py-2 text-sm font-mono" value={form.code} onChange={(e) => setForm((f) => ({ ...f, code: e.target.value }))} placeholder="<script>...</script>" /></div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>

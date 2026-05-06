@@ -4,10 +4,17 @@ export function detectUrls(text: string): string[] {
   return Array.from(text.matchAll(URL_REGEX), (m) => m[0]);
 }
 
+function escapeAttr(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/'/g, "&#39;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
 export function linkifyText(text: string): string {
   return text.replace(
     URL_REGEX,
-    (url) => `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`,
+    (url) => {
+      const safe = escapeAttr(url);
+      return `<a href="${safe}" target="_blank" rel="noopener noreferrer">${safe}</a>`;
+    },
   );
 }
 

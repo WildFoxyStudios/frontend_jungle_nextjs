@@ -50,7 +50,7 @@ export default function TermsPagesPage() {
           <div className="space-y-2 py-2">
             <Label>Content (HTML)</Label>
             <textarea
-              className="w-full min-h-[300px] rounded-md border border-input bg-background px-3 py-2 text-sm"
+              className="w-full min-h-[300px] border bg-background px-3 py-2 text-sm"
               value={content}
               onChange={(e) => setContent(e.target.value)}
             />

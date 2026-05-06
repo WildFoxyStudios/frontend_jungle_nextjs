@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -45,7 +45,7 @@ export default function ActivityLogPage() {
   const { data, isLoading } = useQuery({
     queryKey: ["admin", "activity-log", page, targetType, targetId],
     queryFn: () => {
-      const params: Record<string, string> = { page: String(page) };
+      const params: Record<string, string> = { page: String(page), limit: "50" };
       if (targetType) params["target_type"] = targetType;
       if (targetId) params["target_id"] = targetId;
       return adminApi.getActivityLog(params);
@@ -67,7 +67,7 @@ export default function ActivityLogPage() {
       header: "User",
       cell: ({ row }) => (row.original.user as { username?: string })?.username ?? "—",
     },
-    { accessorKey: "activity_type", header: "Action" },
+    { accessorKey: "action", header: "Action" },
     { accessorKey: "target_type", header: "Target type" },
     { accessorKey: "target_id", header: "Target ID" },
     {

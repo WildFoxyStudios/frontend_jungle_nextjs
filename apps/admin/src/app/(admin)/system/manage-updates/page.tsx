@@ -37,8 +37,8 @@ export default function ManageUpdatesPage() {
 
   return (
     <AdminPageShell
-      title="Manage updates"
-      description="Currently installed backend version and live component status."
+      title="System Info"
+      description="Read-only view of the installed backend version and live component status."
     >
       {isLoading ? (
         <Skeleton className="h-40 w-full" />
@@ -56,7 +56,7 @@ export default function ManageUpdatesPage() {
                 <span className="font-mono">{info.version ?? "unknown"}</span>
               </div>
               <div className="flex items-center gap-2 pt-2">
-                <CheckCircle2 className="h-4 w-4 text-green-500" />
+                <CheckCircle2 className="h-4 w-4 text-success" />
                 <span className="text-xs text-muted-foreground">
                   Updates are deployed via CI/CD — consult the release pipeline
                   for newer versions.

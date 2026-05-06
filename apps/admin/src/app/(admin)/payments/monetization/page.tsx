@@ -32,7 +32,7 @@ export default function MonetizationPage() {
       description="Creator subscription management — revenue per creator and payout status."
       actions={
         <select
-          className="text-sm border rounded px-2 py-1 bg-background"
+          className="text-sm border bg-background px-2 py-1"
           value={status ?? ""}
           onChange={(e) => { setStatus(e.target.value || undefined); setPage(1); }}
         >

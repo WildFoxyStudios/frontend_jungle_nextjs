@@ -204,6 +204,22 @@ export async function processAudio(
 ): Promise<ProcessedMedia> {
   const originalSize = file.size;
 
+  // MediaRecorder output (WebM/Opus) — WASM ffmpeg transcode is slow, flaky, and often unnecessary.
+  if (
+    file.size > 0 &&
+    file.size < 20 * 1024 * 1024 &&
+    (file.type.startsWith("audio/webm") ||
+      file.type.startsWith("audio/ogg") ||
+      file.type === "audio/mp4" ||
+      file.name.toLowerCase().endsWith(".webm"))
+  ) {
+    return {
+      file,
+      originalSize,
+      compressedSize: file.size,
+    };
+  }
+
   if (file.type === "audio/mpeg" && file.size < 10 * 1024 * 1024) {
     return {
       file,
@@ -255,8 +271,14 @@ export async function processAudio(
 
 export function classifyFile(file: File): "image" | "video" | "audio" | "document" {
   if (file.type.startsWith("image/")) return "image";
+  // Chrome sometimes tags MediaRecorder voice blobs as video/webm.
+  if (
+    file.type.startsWith("audio/") ||
+    (file.type === "video/webm" && file.name.toLowerCase().startsWith("voice-"))
+  ) {
+    return "audio";
+  }
   if (file.type.startsWith("video/")) return "video";
-  if (file.type.startsWith("audio/")) return "audio";
   return "document";
 }
 

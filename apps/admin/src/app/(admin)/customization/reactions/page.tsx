@@ -35,7 +35,7 @@ export default function ReactionsPage() {
     }>
       {isLoading ? (
         <div className="grid grid-cols-4 gap-4">
-          {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-20 rounded-lg" />)}
+          {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-20" />)}
         </div>
       ) : (
         <div className="grid grid-cols-3 md:grid-cols-6 gap-3">

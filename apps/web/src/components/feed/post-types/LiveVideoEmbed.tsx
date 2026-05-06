@@ -1,40 +1,53 @@
-import { Play, Users } from "lucide-react";
+import { Radio, Users } from "lucide-react";
 
 interface LiveVideoEmbedProps {
-  liveInfo: { is_live: boolean; viewer_count: number; recording_url?: string };
-  videoUrl?: string; // fallback if it's already ended and recorded
+ liveInfo: { is_live: boolean; viewer_count: number; recording_url?: string };
+ videoUrl?: string; // fallback if it's already ended and recorded
 }
 
 export function LiveVideoEmbed({ liveInfo, videoUrl }: LiveVideoEmbedProps) {
-  if (!liveInfo.is_live && videoUrl) {
-    return (
-      <div className="relative aspect-video bg-black rounded-xl overflow-hidden">
-        <video src={videoUrl} className="w-full h-full" controls preload="none" />
-        <div className="absolute top-2 left-2 bg-black/60 text-white px-2 py-1 flex items-center gap-1 rounded text-xs font-semibold border border-white/20">
-          Was Live
-        </div>
-      </div>
-    );
-  }
+ const replayUrl = liveInfo.recording_url || videoUrl;
 
-  return (
-    <div className="relative aspect-video bg-zinc-900 rounded-xl overflow-hidden flex items-center justify-center group cursor-pointer">
-      {/* Fake placeholder for actual streaming component, like WebRTC or HLS player */}
-      <img src="https://images.unsplash.com/photo-1541844053589-346841d0b34c?q=80&w=1000&auto=format&fit=crop" alt="Live stream" className="absolute inset-0 w-full h-full object-cover opacity-60 mix-blend-overlay" />
-      
-      <div className="absolute top-3 left-3 bg-red-600 text-white px-2 py-0.5 flex items-center gap-1.5 rounded-sm text-xs font-bold shadow-sm animate-pulse">
-        <span className="w-1.5 h-1.5 rounded-full bg-white block" />
-        LIVE
-      </div>
+ if (!liveInfo.is_live && replayUrl) {
+ return (
+ <div className="relative aspect-video overflow-hidden border bg-black" role="region" aria-label="Live stream replay">
+ <video src={replayUrl} className="h-full w-full" controls preload="none" />
+ <div className="absolute left-3 top-3 flex items-center gap-1 rounded-full border border-white/20 bg-black/60 px-2.5 py-1 text-xs font-semibold text-white">
+ Was Live
+ </div>
+ </div>
+ );
+ }
 
-      <div className="absolute top-3 left-[70px] bg-black/60 backdrop-blur text-white px-2 py-0.5 flex items-center gap-1 rounded-sm text-xs font-bold">
-        <Users className="w-3 h-3" />
-        {liveInfo.viewer_count}
-      </div>
+ return (
+ <div className="group relative flex aspect-video items-center justify-center overflow-hidden border bg-gradient-to-br from-zinc-950 via-zinc-900 to-red-950" role="region" aria-label="Live stream in progress">
+ <div className="absolute inset-0 opacity-70 [background-image:radial-gradient(circle_at_top,rgba(255,255,255,0.10),transparent_36%),linear-gradient(135deg,transparent,rgba(239,68,68,0.18))]" />
 
-      <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm group-hover:scale-110 transition-transform">
-        <Play className="w-8 h-8 text-white ml-1" fill="currentColor" />
-      </div>
-    </div>
-  );
+ <div className="absolute left-3 top-3 flex animate-pulse items-center gap-1.5 border-2 border-white/80 bg-red-600 px-2.5 py-1 text-xs font-extrabold text-white">
+ <span className="block h-1.5 w-1.5 rounded-full bg-white" />
+ LIVE
+ </div>
+
+ <div className="absolute left-[78px] top-3 flex items-center gap-1 rounded-full bg-black/60 px-2.5 py-1 text-[13px] font-medium text-white backdrop-blur">
+ <Users className="h-3 w-3" />
+ {liveInfo.viewer_count} viewers
+ </div>
+
+ <div className="relative z-10 flex flex-col items-center gap-3 px-6 text-center text-white">
+ <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/15 backdrop-blur-sm transition-transform group-hover:scale-105">
+ <Radio className="h-7 w-7" />
+ </div>
+ <div className="space-y-1">
+ <p className="text-base font-semibold">Live stream in progress</p>
+ <p className="text-sm text-white/75">
+ The full interactive live viewer is available on the dedicated live page.
+ </p>
+ </div>
+ </div>
+
+ <div className="absolute bottom-3 right-3 border-2 border-white/70 bg-black/70 px-3 py-1 text-[13px] font-medium text-white">
+ Preview
+ </div>
+ </div>
+ );
 }

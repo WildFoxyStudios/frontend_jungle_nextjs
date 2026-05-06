@@ -2,6 +2,7 @@
 
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
 import { CatalogSettingsForm } from "@/components/admin/CatalogSettingsForm";
+import { TestSmsButton } from "@/components/admin/TestSmsButton";
 
 export default function SmsSettingsPage() {
   return (
@@ -10,6 +11,7 @@ export default function SmsSettingsPage() {
       description="Outbound SMS transport for phone verification and notifications. Supports Twilio, Infobip, and MSG91."
     >
       <CatalogSettingsForm category="sms" />
+      <TestSmsButton />
     </AdminPageShell>
   );
 }

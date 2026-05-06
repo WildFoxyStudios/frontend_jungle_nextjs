@@ -1,106 +1,154 @@
 "use client";
 
 import Link from "next/link";
-import { useRealtimeStore } from "@jungle/hooks";
-import { Button, Badge } from "@jungle/ui";
-import { MessageCircle } from "lucide-react";
+import { Button, TopbarShell } from "@jungle/ui";
 import { SearchBar } from "./SearchBar";
-import { NotificationBell } from "./NotificationBell";
+import { NotificationsDropdown } from "./NotificationsDropdown";
+import { MessagesDropdown } from "./MessagesDropdown";
 import { SiteAlertsModal } from "./SiteAlertsModal";
+import { ThemeToggle } from "./ThemeToggle";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 import { UserMenu } from "./UserMenu";
-import { 
-  Plus, PenLine, FileText, Users, ShoppingCart, 
-  Briefcase, Calendar, PlusCircle, Wallet 
+import { MobileNavSheet } from "./MobileNavSheet";
+import { HeaderMoreMenu } from "./HeaderMoreMenu";
+import {
+ Wallet,
+ Shield,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { paymentsApi } from "@jungle/api-client";
 import { useTranslations } from "next-intl";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-  DropdownMenuLabel,
-} from "@jungle/ui";
+import { useAuthStore } from "@jungle/hooks";
+import { getAdminPanelUrl, userCanAccessAdminPanel } from "@/lib/admin-panel";
+import { useStaffFlagsSync } from "@/hooks/use-staff-flags-sync";
 
+/**
+ * Facebook-style top bar.
+ *
+ * Left: hamburger (mobile) · logo
+ * Center: large pill search bar
+ * Right: wallet · admin · messages · notifications · theme/lang · user avatar
+ *
+ * Breakpoint visibility:
+ * | Breakpoint | Always visible | Plus this tier |
+ * |-------------------|----------------|----------------|
+ * | default (< sm) | hamburger · logo · search (icon) · notifications · user | — |
+ * | sm+ | + messages · admin (if staff) | |
+ * | md+ | + right-rail trigger · site-alerts | |
+ * | lg+ | + wallet · theme · language | |
+ */
 export function Header() {
-  const { unreadMessages } = useRealtimeStore();
-  const [balance, setBalance] = useState<number | null>(null);
-  const t = useTranslations("header");
-  const tc = useTranslations("common");
+ const [balance, setBalance] = useState<number | null>(null);
+ const { user, accessToken } = useAuthStore();
+ const t = useTranslations("header");
+ const tn = useTranslations("nav_extra");
+ const adminPanelUrl = getAdminPanelUrl();
+ const showAdminEntry = userCanAccessAdminPanel(user);
+ useStaffFlagsSync();
 
-  useEffect(() => {
-    paymentsApi.getWallet()
-      .then(w => setBalance(w.balance))
-      .catch(() => { /* non-critical: failure is silent */ });
-  }, []);
+ useEffect(() => {
+ paymentsApi
+ .getWallet()
+ .then((w) => setBalance(Number(w.balance) || 0))
+ .catch(() => {
+ /* non-critical */
+ });
+ }, []);
 
-  return (
-    <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60" role="banner">
-      <div className="flex h-14 items-center gap-4 px-4">
-        <Link href="/feed" className="md:hidden text-xl font-bold text-primary">Jungle</Link>
-        <div className="flex-1 flex justify-center">
-          <SearchBar />
-        </div>
-        <div className="flex items-center gap-1">
-          {balance !== null && (
-            <Button variant="ghost" asChild className="hidden sm:flex h-9 px-3 gap-2 bg-primary/5 hover:bg-primary/10 text-primary rounded-full transition-all">
-                <Link href="/wallet">
-                    <Wallet className="h-4 w-4" />
-                    <span className="text-xs font-bold">${balance.toFixed(2)}</span>
-                </Link>
-            </Button>
-          )}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="text-primary hover:bg-primary/10">
-                <PlusCircle className="h-5 w-5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 p-2 rounded-xl">
-              <DropdownMenuLabel className="text-xs text-muted-foreground font-bold uppercase tracking-widest px-2 py-1.5">{t("quickCreate")}</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href="/blogs/create" className="gap-3 cursor-pointer"><PenLine className="h-4 w-4 text-orange-500" /> {t("createBlog")}</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/pages/create" className="gap-3 cursor-pointer"><FileText className="h-4 w-4 text-blue-500" /> {t("createPage")}</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/groups/create" className="gap-3 cursor-pointer"><Users className="h-4 w-4 text-green-500" /> {t("createGroup")}</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/marketplace/create" className="gap-3 cursor-pointer"><ShoppingCart className="h-4 w-4 text-purple-500" /> {t("createProduct")}</Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href="/jobs/create" className="gap-3 cursor-pointer"><Briefcase className="h-4 w-4 text-teal-500" /> {t("postJob")}</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/events/create" className="gap-3 cursor-pointer"><Calendar className="h-4 w-4 text-rose-500" /> {t("createEvent")}</Link>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+ return (
+ <TopbarShell>
+ <div className="relative flex h-14 min-w-0 items-center gap-2 px-2 pl-safe pr-safe sm:gap-3 sm:px-4">
+ {/* Left — hamburger (mobile) + Facebook-style logo */}
+ <div className="flex shrink-0 items-center gap-1">
+ <MobileNavSheet />
+ <Link
+ href="/feed"
+ aria-label="Jungle home"
+ className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-lg font-semibold text-primary-foreground"
+ >
+ f
+ </Link>
+ </div>
 
-          <Button variant="ghost" size="icon" asChild className="relative">
-            <Link href="/messages" aria-label={unreadMessages > 0 ? `${tc("messages")} (${unreadMessages})` : tc("messages")}>
-              <MessageCircle className="h-5 w-5" aria-hidden="true" />
-              {unreadMessages > 0 && (
-                <Badge
-                  variant="destructive"
-                  className="absolute -top-1 -right-1 text-xs px-1 py-0 min-w-[1.2rem] h-5 flex items-center justify-center"
-                >
-                  {unreadMessages > 99 ? "99+" : unreadMessages}
-                </Badge>
-              )}
-            </Link>
-          </Button>
-          <SiteAlertsModal />
-          <NotificationBell />
-          <UserMenu />
-        </div>
-      </div>
-    </header>
-  );
+ {/* Center — large Facebook-style search pill */}
+ <div className="flex min-w-0 flex-1 justify-center px-1">
+ <Suspense
+ fallback={
+ <div
+ className="h-10 w-full max-w-[480px] rounded-full bg-muted/50"
+ aria-hidden
+ />
+ }
+ >
+ <SearchBar compact collapseOnMobile className="w-full max-w-[480px]" />
+ </Suspense>
+ </div>
+
+ {/* Right — simplified Facebook-style icons */}
+ <div className="flex shrink-0 items-center justify-end gap-0.5 sm:gap-1">
+ {/* Wallet — lg+ */}
+ {balance !== null && (
+ <Button
+ asChild
+ variant="secondary"
+ size="sm"
+ className="hidden shrink-0 rounded-full lg:inline-flex"
+ >
+ <Link
+ href="/wallet"
+ aria-label={`${tn("wallet")}: $${balance.toFixed(2)}`}
+ >
+ <Wallet className="h-4 w-4" />
+ <span className="text-[13px] font-semibold">
+ ${Number(balance).toFixed(2)}
+ </span>
+ </Link>
+ </Button>
+ )}
+
+ {/* Admin panel — always visible for staff */}
+ {showAdminEntry && (
+ <Button
+ asChild
+ variant="ghost"
+ size="icon"
+ className="h-10 w-10 shrink-0 rounded-full"
+ aria-label={tn("adminPanel")}
+ >
+ <a href={adminPanelUrl} target="_blank" rel="noopener noreferrer">
+ <Shield className="h-5 w-5" aria-hidden />
+ </a>
+ </Button>
+ )}
+
+ {/* Messages — sm+ */}
+ <div className="hidden sm:block">
+ <MessagesDropdown />
+ </div>
+
+ {/* Notifications — always visible */}
+ <NotificationsDropdown />
+
+ {/* Site alerts — md+ */}
+ <div className="hidden md:block">
+ <SiteAlertsModal />
+ </div>
+
+ {/* Theme + Language — lg+ */}
+ <div className="hidden shrink-0 lg:flex">
+ <ThemeToggle />
+ <LanguageSwitcher />
+ </div>
+
+ {/* Overflow menu (wallet/theme/lang) — < lg */}
+ <HeaderMoreMenu balance={balance} />
+
+ {/* User avatar — always visible */}
+ <div className="shrink-0 pl-0.5">
+ <UserMenu />
+ </div>
+ </div>
+ </div>
+ </TopbarShell>
+ );
 }

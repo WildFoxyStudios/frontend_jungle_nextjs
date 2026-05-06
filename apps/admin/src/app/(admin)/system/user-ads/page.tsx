@@ -1,9 +1,10 @@
-﻿"use client";
+"use client";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { adminApi } from "@jungle/api-client";
+import { adminApi, cursorPagerTotal } from "@jungle/api-client";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
 import { DataTable } from "@/components/data-table/DataTable";
+import { useAdminCursorPages } from "@/hooks/useAdminCursorPages";
 import { Button, Badge, ConfirmDialog } from "@jungle/ui";
 import { toast } from "sonner";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -13,23 +14,35 @@ type AdRow = { id: number } & Record<string, unknown>;
 
 export default function UserAdsPage() {
   const qc = useQueryClient();
-  const [page, setPage] = useState(1);
+  const { sentCursor, page, goToPage, reset } = useAdminCursorPages();
   const [pendingDelete, setPendingDelete] = useState<AdRow | null>(null);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["admin", "user-ads", page],
-    queryFn: () => adminApi.getUserAds({ page: String(page) }),
+    queryKey: ["admin", "user-ads", sentCursor ?? "head"],
+    queryFn: () =>
+      adminApi.getUserAds({
+        limit: "20",
+        ...(sentCursor ? { cursor: sentCursor } : {}),
+      }),
   });
 
   const toggle = useMutation({
     mutationFn: (id: number) => adminApi.toggleUserAd(id),
-    onSuccess: () => { toast.success("Ad toggled"); qc.invalidateQueries({ queryKey: ["admin", "user-ads"] }); },
+    onSuccess: () => {
+      toast.success("Ad toggled");
+      reset();
+      qc.invalidateQueries({ queryKey: ["admin", "user-ads"] });
+    },
     onError: () => toast.error("Failed to toggle ad"),
   });
 
   const del = useMutation({
     mutationFn: (id: number) => adminApi.deleteUserAd(id),
-    onSuccess: () => { toast.success("Ad deleted"); qc.invalidateQueries({ queryKey: ["admin", "user-ads"] }); },
+    onSuccess: () => {
+      toast.success("Ad deleted");
+      reset();
+      qc.invalidateQueries({ queryKey: ["admin", "user-ads"] });
+    },
     onError: () => toast.error("Failed to delete ad"),
   });
 
@@ -54,7 +67,7 @@ export default function UserAdsPage() {
       cell: ({ row }) => (
         <div className="flex gap-1">
           <Button variant="ghost" size="sm" onClick={() => toggle.mutate(row.original.id)} title="Toggle active"><ToggleLeft className="h-3.5 w-3.5" /></Button>
-          <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => setPendingDelete(row.original)}><Trash2 className="h-3.5 w-3.5" /></Button>
+          <Button variant="destructive" size="sm" onClick={() => setPendingDelete(row.original)}><Trash2 className="h-3.5 w-3.5" /></Button>
         </div>
       ),
     },
@@ -67,7 +80,14 @@ export default function UserAdsPage() {
         columns={columns}
         isLoading={isLoading}
         searchPlaceholder="Search ads…"
-        pagination={data ? { page, total: data.meta.total ?? 0, perPage: 20, onPageChange: setPage } : undefined}
+        pagination={data
+          ? {
+              page,
+              total: cursorPagerTotal(page, 20, data.data.length, data.meta.has_more, data.meta.total),
+              perPage: 20,
+              onPageChange: (n) => goToPage(n, data.meta.cursor),
+            }
+          : undefined}
       />
 
       <ConfirmDialog

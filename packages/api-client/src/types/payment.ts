@@ -42,17 +42,12 @@ export interface Wallet {
 }
 
 export interface ProPlan {
-  id: number;
+  type: number;
   name: string;
-  price: number;
-  currency: string;
-  duration_days: number;
-  time?: string;
-  features: string[];
-  is_popular: boolean;
+  monthly_price: string;
+  yearly_price: string;
   featured_member?: boolean;
   profile_visitors?: boolean;
-  last_seen?: boolean;
   verified_badge?: boolean;
   posts_promotion?: number;
   pages_promotion?: number;

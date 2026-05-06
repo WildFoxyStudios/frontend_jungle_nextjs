@@ -1,9 +1,9 @@
-﻿"use client";
+"use client";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { adminApi } from "@jungle/api-client";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
-import { Button, Card, CardContent, Input, Label, Avatar, AvatarFallback, AvatarImage, Skeleton, Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@jungle/ui";
+import { Button, Input, Label, Avatar, AvatarFallback, AvatarImage, Skeleton, Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@jungle/ui";
 import { toast } from "sonner";
 import { Plus } from "lucide-react";
 
@@ -22,7 +22,7 @@ export default function FakeUsersPage() {
     onError: () => toast.error("Failed"),
   });
 
-  const users = (data ?? []) as FakeUser[];
+  const users = ((data as { data?: FakeUser[] } | undefined)?.data ?? []);
 
   return (
     <AdminPageShell title="Fake Users" description="Create test accounts for demonstration purposes" actions={
@@ -33,8 +33,8 @@ export default function FakeUsersPage() {
           {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-14 w-full" />)}
         </div>
       ) : (
-        <div className="border rounded-lg divide-y">
-          {users.length === 0 && <p className="text-center text-muted-foreground py-8 text-sm">No fake users yet.</p>}
+        <div className="border bg-card divide-y-2 divide-foreground shadow-sm">
+          {users.length === 0 && <p className="text-center text-muted-foreground py-8 text-sm font-bold uppercase tracking-wide">No fake users yet.</p>}
           {users.map((u) => (
             <div key={u.id} className="flex items-center gap-3 px-4 py-3">
               <Avatar className="h-9 w-9">

@@ -1,9 +1,9 @@
-﻿"use client";
+"use client";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { adminApi } from "@jungle/api-client";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
-import { Button, Input, Label, Card, CardContent, Skeleton, Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@jungle/ui";
+import { Button, Input, Label, Card, Skeleton, Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@jungle/ui";
 import { toast } from "sonner";
 import { Plus, Trash2 } from "lucide-react";
 
@@ -60,12 +60,12 @@ export default function ColoredPostsPage() {
             {(["color_1", "color_2", "text_color"] as const).map((field) => (
               <div key={field} className="flex items-center gap-3">
                 <Label className="w-28 capitalize">{field.replace("_", " ")}</Label>
-                <input type="color" value={form[field]} onChange={(e) => setForm((f) => ({ ...f, [field]: e.target.value }))} className="h-9 w-16 rounded border cursor-pointer" />
+                <input type="color" value={form[field]} onChange={(e) => setForm((f) => ({ ...f, [field]: e.target.value }))} className="h-9 w-16 border cursor-pointer" />
                 <Input value={form[field]} onChange={(e) => setForm((f) => ({ ...f, [field]: e.target.value }))} className="flex-1 font-mono text-sm" />
               </div>
             ))}
-            <div className="h-16 rounded-lg mt-2" style={{ background: `linear-gradient(135deg, ${form.color_1}, ${form.color_2})` }}>
-              <p className="text-center leading-[4rem] text-sm font-medium" style={{ color: form.text_color }}>Preview</p>
+            <div className="h-16 mt-2 border" style={{ background: `linear-gradient(135deg, ${form.color_1}, ${form.color_2})` }}>
+              <p className="text-center leading-[4rem] text-sm font-bold uppercase tracking-wide" style={{ color: form.text_color }}>Preview</p>
             </div>
           </div>
           <DialogFooter>

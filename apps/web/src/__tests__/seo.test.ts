@@ -10,7 +10,6 @@ import {
   buildJobMetadata,
   buildFundingMetadata,
   SITE_NAME,
-  BASE_URL,
 } from "@/lib/seo";
 
 describe("buildMetadata", () => {

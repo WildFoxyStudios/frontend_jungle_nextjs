@@ -1,173 +1,236 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { liveApi } from "@jungle/api-client";
-import type { LiveStream } from "@jungle/api-client";
-import { Button, Card, CardContent, Input, Skeleton, Badge, Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, Label } from "@jungle/ui";
-import { Radio, Users, Play } from "lucide-react";
+import { useRouter } from "next/navigation";
+import type { LiveStream, PaginatedResponse } from "@jungle/api-client";
+import { liveApi, liveNativeApi } from "@jungle/api-client";
+import { useAuthStore } from "@jungle/hooks";
+import {
+ Button,
+ Card,
+ CardContent,
+ Dialog,
+ DialogContent,
+ DialogFooter,
+ DialogHeader,
+ DialogTitle,
+ Input,
+ Label,
+ Skeleton,
+ Badge,
+} from "@jungle/ui";
+import { Radio, Users, Play, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { formatDistanceToNow } from "@/lib/date";
 
+function hostLabel(s: LiveStream, fallback: string): string {
+ const p = s.publisher;
+ if (!p) return fallback;
+ const n = `${p.first_name ?? ""} ${p.last_name ?? ""}`.trim();
+ if (n) return n;
+ return p.username ?? fallback;
+}
+
 export default function LiveListPage() {
-  const [streams, setStreams] = useState<LiveStream[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [showStart, setShowStart] = useState(false);
-  const [title, setTitle] = useState("");
-  const [starting, setStarting] = useState(false);
-  const [myStream, setMyStream] = useState<LiveStream | null>(null);
+ const router = useRouter();
+ const { accessToken, user } = useAuthStore();
+ const t = useTranslations("liveRoom");
+ const tc = useTranslations("common");
+ const [streams, setStreams] = useState<LiveStream[]>([]);
+ const [loading, setLoading] = useState(true);
+ const [showStart, setShowStart] = useState(false);
+ const [title, setTitle] = useState("");
+ const [starting, setStarting] = useState(false);
+ const [myLiveId, setMyLiveId] = useState<number | null>(null);
 
-  useEffect(() => {
-    liveApi.getActiveLives()
-      .then((r) => setStreams(r.data as LiveStream[]))
-      .catch(() => { /* non-critical: failure is silent */ })
-      .finally(() => setLoading(false));
-  }, []);
+ const load = useCallback(async () => {
+ if (!accessToken) {
+ setStreams([]);
+ setLoading(false);
+ return;
+ }
+ setLoading(true);
+ try {
+ const res = await liveApi.getActiveLives();
+ const body = res as PaginatedResponse<LiveStream>;
+ const list = Array.isArray(body?.data) ? body.data : [];
+ setStreams(list);
+ const mine = list.find((s) => user && Number(s.user_id) === Number(user.id));
+ setMyLiveId(mine ? mine.id : null);
+ } catch {
+ toast.error(t("loadError"));
+ setStreams([]);
+ } finally {
+ setLoading(false);
+ }
+ }, [accessToken, user, t]);
 
-  const handleStart = async () => {
-    if (!title.trim()) { toast.error("Enter a title"); return; }
-    setStarting(true);
-    try {
-      const stream = await liveApi.startLive(title);
-      setMyStream(stream);
-      toast.success("Live stream started!");
-      setShowStart(false);
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to start stream");
-    } finally {
-      setStarting(false);
-    }
-  };
+ useEffect(() => {
+ void load();
+ }, [load]);
 
-  const handleStop = async () => {
-    try {
-      await liveApi.stopLive();
-      setMyStream(null);
-      toast.success("Stream ended");
-    } catch {
-      toast.error("Failed to stop stream");
-    }
-  };
+ const handleStart = async () => {
+ if (!title.trim()) {
+ toast.error(t("streamTitlePlaceholder"));
+ return;
+ }
+ setStarting(true);
+ try {
+ // Default flow: use the internal live-service (self-hosted WebRTC).
+ const room = await liveNativeApi.createRoom({
+ title: title.trim(),
+ kind: "live",
+ max_participants: 100,
+ });
+ // Close dialog and navigate only on success
+ setShowStart(false);
+ setTitle("");
+ toast.success(t("goLive"));
+ router.push(`/live/${room.id}?host=1`);
+ } catch (err) {
+ // Log to console so devs can see the actual API error in DevTools
+ console.error("[Go Live] createRoom error:", err);
+ const msg =
+ err instanceof Error
+ ? err.message
+ : typeof err === "string"
+ ? err
+ : t("startError");
+ toast.error(msg);
+ // Keep dialog open so the user can retry
+ } finally {
+ setStarting(false);
+ }
+ };
 
-  return (
-    <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Radio className="h-6 w-6 text-red-500" /> Live
-        </h1>
-        {myStream ? (
-          <Button variant="destructive" onClick={handleStop} className="gap-2">
-            <Radio className="h-4 w-4" /> Stop Streaming
-          </Button>
-        ) : (
-          <Button onClick={() => setShowStart(true)} className="gap-2">
-            <Radio className="h-4 w-4" /> Go Live
-          </Button>
-        )}
-      </div>
+ const handleStopMine = async () => {
+ try {
+ await liveApi.stopLive();
+ toast.success(t("stopStream"));
+ setMyLiveId(null);
+ void load();
+ } catch {
+ toast.error(t("stopError"));
+ }
+ };
 
-      {/* My active stream */}
-      {myStream && (
-        <Card className="border-red-500 border-2">
-          <CardContent className="p-4 space-y-3">
-            <div className="flex items-center gap-2">
-              <Badge variant="destructive" className="gap-1"><Radio className="h-3 w-3" /> LIVE</Badge>
-              <span className="font-semibold">{myStream.title}</span>
-            </div>
-            <div className="bg-muted rounded-lg p-4 text-sm space-y-2">
-              <p className="text-muted-foreground">Stream key for OBS / streaming software:</p>
-              <code className="block bg-background border rounded px-3 py-2 font-mono text-xs break-all select-all">
-                {myStream.stream_key}
-              </code>
-              <p className="text-xs text-muted-foreground">
-                RTMP URL: <code className="bg-background border rounded px-1 py-0.5 font-mono">/api/v1/live/ingest</code>
-              </p>
-            </div>
-            <Link href={`/live/${myStream.id}`}>
-              <Button variant="outline" size="sm" className="gap-2">
-                <Play className="h-4 w-4" /> View my stream
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-      )}
+ if (!accessToken) {
+ return (
+ <div className="mx-auto max-w-lg space-y-4 px-4 py-16 text-center">
+ <Radio className="mx-auto h-12 w-12 text-muted-foreground" />
+ <p className="font-semibold">{t("signInToWatch")}</p>
+ <Button asChild>
+ <Link href="/login">{t("signInToWatch")}</Link>
+ </Button>
+ </div>
+ );
+ }
 
-      {/* Active streams */}
-      {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {[1,2,3,4].map((i) => <Skeleton key={i} className="h-40 w-full rounded-lg" />)}
-        </div>
-      ) : streams.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center space-y-2">
-            <Radio className="h-10 w-10 text-muted-foreground mx-auto" />
-            <p className="text-muted-foreground">No live streams right now.</p>
-            <p className="text-sm text-muted-foreground">Be the first to go live!</p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {streams.map((s) => (
-            <Link key={s.id} href={`/live/${s.id}`}>
-              <Card className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer group">
-                <div className="relative aspect-video bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
-                  <Play className="h-12 w-12 text-white/40 group-hover:text-white/70 transition-colors" />
-                  <Badge variant="destructive" className="absolute top-2 left-2 gap-1">
-                    <Radio className="h-3 w-3" /> LIVE
-                  </Badge>
-                  <div className="absolute bottom-2 right-2 flex items-center gap-1 bg-black/60 rounded px-2 py-0.5">
-                    <Users className="h-3 w-3 text-white" />
-                    <span className="text-xs text-white">{s.viewer_count}</span>
-                  </div>
-                </div>
-                <CardContent className="p-3 space-y-1">
-                  <p className="font-semibold text-sm line-clamp-1">{s.title}</p>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    {s.publisher && (
-                      <span>{s.publisher.first_name} {s.publisher.last_name}</span>
-                    )}
-                    <span>·</span>
-                    <span>{formatDistanceToNow(s.created_at)}</span>
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
-        </div>
-      )}
+ return (
+ <div className="mx-auto max-w-4xl space-y-6 px-4 py-6">
+ <div className="flex flex-wrap items-center justify-between gap-3">
+ <h1 className="flex items-center gap-2 text-2xl font-bold sm:text-[28px]">
+ <Radio className="h-6 w-6 text-red-500" /> {t("pageTitle")}
+ </h1>
+ <div className="flex flex-wrap items-center gap-2">
+ <Button type="button" variant="outline" size="sm" className="gap-2" onClick={() => void load()}>
+ <RefreshCw className="h-4 w-4" /> {t("refresh")}
+ </Button>
+ {myLiveId ? (
+ <>
+ <Button variant="destructive" size="sm" className="gap-2" onClick={() => void handleStopMine()}>
+ <Radio className="h-4 w-4" /> {t("stopStream")}
+ </Button>
+ <Button size="sm" asChild className="gap-2">
+ <Link href={`/live/${myLiveId}?host=1`}>
+ <Play className="h-4 w-4" /> {t("yourStream")}
+ </Link>
+ </Button>
+ </>
+ ) : (
+ <Button type="button" size="sm" onClick={() => setShowStart(true)} className="gap-2">
+ <Radio className="h-4 w-4" /> {t("goLive")}
+ </Button>
+ )}
+ </div>
+ </div>
 
-      {/* Go Live Dialog */}
-      <Dialog open={showStart} onOpenChange={setShowStart}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Radio className="h-5 w-5 text-red-500" /> Start Live Stream
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-1.5">
-              <Label>Stream Title *</Label>
-              <Input
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="What are you streaming about?"
-                maxLength={100}
-                onKeyDown={(e) => { if (e.key === "Enter") void handleStart(); }}
-              />
-            </div>
-            <p className="text-xs text-muted-foreground">
-              After starting, you&apos;ll receive a stream key to use with OBS or any RTMP streaming software.
-            </p>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowStart(false)}>Cancel</Button>
-            <Button onClick={handleStart} disabled={starting || !title.trim()} className="gap-2">
-              <Radio className="h-4 w-4" />
-              {starting ? "Starting…" : "Go Live"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
+ <p className="text-sm text-muted-foreground">{t("startHint")}</p>
+
+ {loading ? (
+ <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+ {[1, 2, 3, 4].map((i) => (
+ <Skeleton key={i} className="h-40 w-full" />
+ ))}
+ </div>
+ ) : streams.length === 0 ? (
+ <div className="space-y-2 py-12 text-center">
+ <Radio className="mx-auto h-10 w-10 text-muted-foreground" />
+ <p className="font-medium text-muted-foreground">{t("noStreams")}</p>
+ <p className="text-sm text-muted-foreground">{t("noStreamsHint")}</p>
+ </div>
+ ) : (
+ <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+ {streams.map((s) => (
+ <Link key={s.id} href={`/live/${s.id}`}>
+ <Card className="group h-full cursor-pointer overflow-hidden transition hover:bg-muted/50">
+ <div className="relative flex aspect-video items-center justify-center border-b bg-gradient-to-br from-gray-800 to-gray-900">
+ <Play className="h-12 w-12 text-white/40 transition-colors group-hover:text-white/70" />
+ <Badge variant="destructive" className="absolute left-2 top-2 gap-1">
+ <Radio className="h-3 w-3" /> {t("liveBadge")}
+ </Badge>
+									 <Badge variant="secondary" className="absolute bottom-2 right-2 gap-1 border-white/70 bg-black/70 text-white">
+									 <Users className="h-3 w-3" />
+									 {s.viewer_count}
+									 </Badge>
+ </div>
+ <CardContent className="space-y-1 p-3">
+ <p className="line-clamp-1 text-sm font-semibold">{s.title}</p>
+ <p className="text-[13px] font-medium text-muted-foreground">{hostLabel(s, t("hostBadge"))}</p>
+ <p className="text-[13px] font-medium text-muted-foreground">
+ {formatDistanceToNow(s.created_at)}
+ </p>
+ </CardContent>
+ </Card>
+ </Link>
+ ))}
+ </div>
+ )}
+
+ <Dialog open={showStart} onOpenChange={setShowStart}>
+ <DialogContent>
+ <DialogHeader>
+ <DialogTitle className="flex items-center gap-2">
+ <Radio className="h-5 w-5 text-red-500" /> {t("startTitle")}
+ </DialogTitle>
+ </DialogHeader>
+ <div className="space-y-4 py-2">
+ <div className="space-y-1.5">
+ <Label>{t("streamTitleLabel")}</Label>
+ <Input
+ value={title}
+ onChange={(e) => setTitle(e.target.value)}
+ placeholder={t("streamTitlePlaceholder")}
+ maxLength={100}
+ onKeyDown={(e) => {
+ if (e.key === "Enter") void handleStart();
+ }}
+ />
+ </div>
+ </div>
+ <DialogFooter>
+ <Button variant="outline" onClick={() => setShowStart(false)}>
+ {tc("cancel")}
+ </Button>
+ <Button onClick={() => void handleStart()} disabled={starting || !title.trim()} className="gap-2">
+ <Radio className="h-4 w-4" />
+ {starting ? t("connecting") : t("goLive")}
+ </Button>
+ </DialogFooter>
+ </DialogContent>
+ </Dialog>
+ </div>
+ );
 }

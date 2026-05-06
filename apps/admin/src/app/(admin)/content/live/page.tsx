@@ -94,7 +94,7 @@ export default function AdminLiveStreamsPage() {
             <TableBody>
               {streams.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-12 text-muted-foreground">
+                  <TableCell colSpan={6} className="text-center py-12 text-muted-foreground font-bold uppercase tracking-wide">
                     No active live streams.
                   </TableCell>
                 </TableRow>
@@ -161,8 +161,8 @@ function StatCard({ label, value }: { label: string; value: number }) {
   return (
     <Card>
       <CardContent className="pt-6">
-        <div className="text-sm text-muted-foreground">{label}</div>
-        <div className="text-3xl font-bold mt-1">{value.toLocaleString()}</div>
+        <div className="text-xs font-bold uppercase tracking-wide text-muted-foreground">{label}</div>
+        <div className="text-3xl font-extrabold tracking-tight mt-1">{value.toLocaleString()}</div>
       </CardContent>
     </Card>
   );

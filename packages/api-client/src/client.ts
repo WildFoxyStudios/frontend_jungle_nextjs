@@ -11,6 +11,20 @@ type RefreshCallback = { resolve: (ok: boolean) => void };
 type AuthFailureHandler = () => void;
 type RefreshTokenUpdater = (accessToken: string, refreshToken: string) => void;
 
+/**
+ * Key used by `useAuthStore`'s `persist` middleware. Kept in sync manually
+ * because the auth store lives in a separate workspace package and we don't
+ * want to introduce a circular import just to share a constant.
+ */
+export const AUTH_STORAGE_KEY = "Jungle-auth";
+
+interface PersistedAuthState {
+  state?: {
+    accessToken?: string | null;
+    refreshToken?: string | null;
+  };
+}
+
 export class ApiClient {
   private accessToken: string | null = null;
   private refreshToken: string | null = null;
@@ -39,6 +53,36 @@ export class ApiClient {
     this.refreshToken = null;
   }
 
+  /**
+   * Read the persisted auth tokens directly from `localStorage`. This closes
+   * the race condition where a component's `useEffect` fires a request before
+   * Zustand `persist` has finished rehydrating the auth store and called
+   * `api.setToken(...)`. Without this fallback the very first batch of
+   * requests after a hard reload would all 401, the refresh would also fail
+   * (no refresh token in memory either) and the user would be stuck on the
+   * page with no way to recover until a manual reload.
+   */
+  private hydrateTokensFromStorage(): void {
+    if (typeof window === "undefined") return;
+    if (this.accessToken && this.refreshToken) return;
+    try {
+      const raw = window.localStorage.getItem(AUTH_STORAGE_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as PersistedAuthState;
+      const access = parsed.state?.accessToken;
+      const refresh = parsed.state?.refreshToken;
+      if (!this.accessToken && typeof access === "string" && access.length > 0) {
+        this.accessToken = access;
+      }
+      if (!this.refreshToken && typeof refresh === "string" && refresh.length > 0) {
+        this.refreshToken = refresh;
+      }
+    } catch {
+      // Corrupted persisted state — ignore and let the regular auth flow
+      // surface the failure.
+    }
+  }
+
   setOnAuthFailure(handler: AuthFailureHandler): void {
     this.onAuthFailure = handler;
   }
@@ -50,11 +94,23 @@ export class ApiClient {
   private fireAuthFailure(): void {
     if (this.authFailureFired) return;
     this.authFailureFired = true;
+    // Purge persisted auth state so stale tokens don't survive a page reload
+    // and re-trigger the same cascade. The Zustand persist middleware writes
+    // under this key; nuking it here breaks the loop of "rehydrate stale →
+    // 401 → refresh → fail → redirect → rehydrate stale".
+    if (typeof window !== "undefined") {
+      try { window.localStorage.removeItem(AUTH_STORAGE_KEY); } catch { /* ignore */ }
+    }
     this.onAuthFailure?.();
   }
 
   async request<T>(path: string, options: RequestInit = {}): Promise<T> {
     const url = path.startsWith("http") ? path : `${this.baseUrl}${path}`;
+
+    // Make sure we don't lose the auth header just because Zustand's persist
+    // rehydration hasn't fired yet (common on first paint after a hard reload
+    // or during HMR Fast Refresh).
+    this.hydrateTokensFromStorage();
 
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
@@ -159,10 +215,10 @@ export class ApiClient {
       if (data.access_token && data.refresh_token) {
         this.onTokenRefreshed?.(data.access_token, data.refresh_token);
       }
-      // Refresh succeeded if the server returned 2xx, regardless of whether the
-      // body contained an access_token field (some deployments only set the
-      // cookie and return an empty body).
-      return true;
+      // Only consider the refresh successful if we actually received a new
+      // access token. A 2xx response with an empty body (cookie-only
+      // deployments) cannot be verified client-side.
+      return !!data.access_token;
     } catch {
       return false;
     }
@@ -260,6 +316,8 @@ export class ApiClient {
       ? `${path}${query}`
       : `${this.baseUrl}${path}${query}`;
 
+    this.hydrateTokensFromStorage();
+
     const headers: Record<string, string> = {};
     if (this.accessToken) headers["Authorization"] = `Bearer ${this.accessToken}`;
 
@@ -296,7 +354,8 @@ export class ApiClient {
     // Parse filename from Content-Disposition if the server set one.
     const cd = response.headers.get("content-disposition") ?? "";
     const match = /filename\*?=(?:UTF-8'')?"?([^";]+)"?/i.exec(cd);
-    const filename = match?.[1] ? decodeURIComponent(match[1].trim()) : null;
+    const rawFilename = match?.[1] ? decodeURIComponent(match[1].trim()) : null;
+    const filename = rawFilename ? rawFilename.replace(/<[^>]*>/g, "").replace(/[<>"'']/g, "") : null;
     return { blob, filename };
   }
 
@@ -306,6 +365,8 @@ export class ApiClient {
     onProgress?: (pct: number) => void,
   ): Promise<T> {
     return new Promise<T>((resolve, reject) => {
+      this.hydrateTokensFromStorage();
+
       const xhr = new XMLHttpRequest();
       xhr.open("POST", path.startsWith("http") ? path : `${this.baseUrl}${path}`);
 

@@ -37,8 +37,8 @@ export default function ChangelogPage() {
           <Card>
             <CardContent className="p-4 flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Backend version</p>
-                <p className="font-mono text-lg font-semibold">
+                <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Backend version</p>
+                <p className="font-mono text-lg font-extrabold tracking-tight">
                   {data?.backend_version ?? "unknown"}
                 </p>
               </div>
@@ -51,7 +51,7 @@ export default function ChangelogPage() {
           <Card>
             <CardContent className="p-0">
               {migrations.length === 0 ? (
-                <p className="py-8 text-center text-muted-foreground text-sm">
+                <p className="py-8 text-center text-muted-foreground text-sm font-bold uppercase tracking-wide">
                   No migrations recorded. The _sqlx_migrations table is empty or
                   does not exist yet.
                 </p>
@@ -83,7 +83,7 @@ export default function ChangelogPage() {
                         </TableCell>
                         <TableCell className="text-center">
                           {m.success ? (
-                            <CheckCircle2 className="h-4 w-4 text-green-500 inline" />
+                            <CheckCircle2 className="h-4 w-4 text-success inline" />
                           ) : (
                             <XCircle className="h-4 w-4 text-destructive inline" />
                           )}

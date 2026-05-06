@@ -1,97 +1,171 @@
 @import "tailwindcss";
+@import "@jungle/ui/globals.css";
 
-@theme {
-  --color-border: hsl(var(--border));
+/* ----------------------------------------------------------------------------
+ * Tailwind v4 token mapping — pulls from the design system in @jungle/ui.
+ * Adding/removing tokens here is rare; usually you only update them in
+ * `@jungle/ui/globals.css` (single source of truth across apps).
+ * -------------------------------------------------------------------------- */
+@theme inline {
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
-  --color-primary: hsl(var(--primary));
-  --color-primary-foreground: hsl(var(--primary-foreground));
-  --color-secondary: hsl(var(--secondary));
-  --color-secondary-foreground: hsl(var(--secondary-foreground));
-  --color-muted: hsl(var(--muted));
-  --color-muted-foreground: hsl(var(--muted-foreground));
-  --color-accent: hsl(var(--accent));
-  --color-accent-foreground: hsl(var(--accent-foreground));
-  --color-destructive: hsl(var(--destructive));
-  --color-destructive-foreground: hsl(var(--destructive-foreground));
+
   --color-card: hsl(var(--card));
   --color-card-foreground: hsl(var(--card-foreground));
+
   --color-popover: hsl(var(--popover));
   --color-popover-foreground: hsl(var(--popover-foreground));
+
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+
+  --color-success: hsl(var(--success));
+  --color-success-foreground: hsl(var(--success-foreground));
+
+  --color-warning: hsl(var(--warning));
+  --color-warning-foreground: hsl(var(--warning-foreground));
+
+  --color-info: hsl(var(--info));
+  --color-info-foreground: hsl(var(--info-foreground));
+
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+
+  --radius-xs: 6px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-2xl: 24px;
+  --radius-full: 9999px;
+
+  --shadow-xs: var(--shadow-xs);
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-xl: var(--shadow-xl);
+  --shadow-2xl: var(--shadow-2xl);
+
+  --font-sans: var(--font-sans);
+  --font-display: var(--font-display);
+  --font-mono: var(--font-mono);
 }
 
-:root {
-  --background: 0 0% 100%;
-  --foreground: 222.2 84% 4.9%;
+/* ─── Sunshine preset (warm amber-leaning identity) ─────────────── */
+html.sunshine:not(.dark) {
+  --background: 38 92% 97%;            /* warm cream */
+  --foreground: 26 50% 8%;
+
   --card: 0 0% 100%;
-  --card-foreground: 222.2 84% 4.9%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 222.2 84% 4.9%;
-  --primary: 221.2 83.2% 53.3%;
-  --primary-foreground: 210 40% 98%;
-  --secondary: 210 40% 96.1%;
-  --secondary-foreground: 222.2 47.4% 11.2%;
-  --muted: 210 40% 96.1%;
-  --muted-foreground: 215.4 16.3% 46.9%;
-  --accent: 210 40% 96.1%;
-  --accent-foreground: 222.2 47.4% 11.2%;
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 210 40% 98%;
-  --border: 214.3 31.8% 91.4%;
-  --input: 214.3 31.8% 91.4%;
-  --ring: 221.2 83.2% 53.3%;
-  --radius: 0.5rem;
+  --muted: 38 50% 92%;
+  --muted-foreground: 26 30% 35%;
+
+  --surface-raised: 0 0% 100%;
+  --surface-sunken: 38 50% 94%;
+  --surface-subtle: 38 60% 96%;
+
+  /* Amber-leaning primary in this preset */
+  --primary: 38 92% 50%;
+  --primary-hover: 38 92% 45%;
+  --primary-foreground: 26 50% 8%;
+  --primary-soft: 38 92% 50% / 0.14;
+  --primary-subtle: 38 92% 50% / 0.14;
+  --ring: 38 92% 50%;
+
+  --accent: 158 64% 40%;
+  --secondary: 239 84% 67%;
+
+  --border: 38 30% 88%;
+  --border-strong: 38 30% 78%;
+  --border-subtle: 38 30% 92%;
 }
 
-.dark {
-  --background: 222.2 84% 4.9%;
-  --foreground: 210 40% 98%;
-  --card: 222.2 84% 4.9%;
-  --card-foreground: 210 40% 98%;
-  --popover: 222.2 84% 4.9%;
-  --popover-foreground: 210 40% 98%;
-  --primary: 217.2 91.2% 59.8%;
-  --primary-foreground: 222.2 47.4% 11.2%;
-  --secondary: 217.2 32.6% 17.5%;
-  --secondary-foreground: 210 40% 98%;
-  --muted: 217.2 32.6% 17.5%;
-  --muted-foreground: 215 20.2% 65.1%;
-  --accent: 217.2 32.6% 17.5%;
-  --accent-foreground: 210 40% 98%;
-  --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 210 40% 98%;
-  --border: 217.2 32.6% 17.5%;
-  --input: 217.2 32.6% 17.5%;
-  --ring: 224.3 76.3% 48%;
+/* ─── Facebook preset ──────────────────────────────────────────── */
+html.facebook:not(.dark) {
+  --background: 220 20% 96%;              /* #F0F2F5 Facebook gray */
+  --foreground: 0 0% 10%;
+
+  --card: 0 0% 100%;
+  --muted: 220 14% 93%;
+  --muted-foreground: 220 6% 40%;
+
+  --surface-raised: 0 0% 100%;
+  --surface-sunken: 220 14% 94%;
+  --surface-subtle: 220 20% 97%;
+
+  /* Facebook blue #0866FF → HSL 214 100% 52% */
+  --primary: 214 100% 52%;
+  --primary-hover: 214 100% 45%;
+  --primary-foreground: 0 0% 100%;
+  --primary-soft: 214 100% 52% / 0.14;
+  --primary-subtle: 214 100% 52% / 0.14;
+  --ring: 214 100% 52%;
+
+  --accent: 214 100% 52%;
+  --secondary: 220 14% 90%;
+
+  --border: 216 20% 90%;                  /* #E4E6EB */
+  --border-strong: 216 20% 78%;
+  --border-subtle: 216 20% 93%;
+
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 8px;
+  --radius-xl: 8px;
+  --radius-2xl: 12px;
+  --radius-full: 9999px;
+
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.08);
+  --shadow-xl: 0 8px 16px rgba(0, 0, 0, 0.08);
+  --shadow-2xl: 0 12px 24px rgba(0, 0, 0, 0.1);
+
+  /* System font stack (Facebook uses native OS fonts) */
+  --font-sans: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Roboto, "Noto Sans", sans-serif;
+  --font-display: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Roboto, sans-serif;
 }
 
-@layer base {
-  * {
-    border-color: hsl(var(--border) / 1);
-  }
+/* ─── Forest preset (emerald-leaning, nature identity — NEW) ────── */
+html.forest:not(.dark) {
+  --background: 160 30% 96%;
+  --foreground: 160 50% 7%;
 
-  body {
-    background-color: hsl(var(--background));
-    color: hsl(var(--foreground));
-    font-feature-settings: "rlig" 1, "calt" 1;
-  }
-}
+  --card: 0 0% 100%;
+  --muted: 160 20% 92%;
+  --muted-foreground: 160 14% 35%;
 
-/* Premium Scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
+  --surface-raised: 0 0% 100%;
+  --surface-sunken: 160 18% 94%;
+  --surface-subtle: 160 20% 96%;
 
-::-webkit-scrollbar-track {
-  background: transparent;
-}
+  /* Emerald-leaning primary */
+  --primary: 158 64% 40%;
+  --primary-hover: 158 64% 35%;
+  --primary-foreground: 0 0% 100%;
+  --primary-soft: 158 64% 40% / 0.14;
+  --primary-subtle: 158 64% 40% / 0.14;
+  --ring: 158 64% 40%;
 
-::-webkit-scrollbar-thumb {
-  background: hsl(var(--muted-foreground) / 0.2);
-  border-radius: 9999px;
-}
+  --accent: 239 84% 67%;
+  --secondary: 38 92% 50%;
 
-::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--muted-foreground) / 0.4);
+  --border: 160 16% 88%;
+  --border-strong: 160 16% 78%;
+  --border-subtle: 160 16% 92%;
 }

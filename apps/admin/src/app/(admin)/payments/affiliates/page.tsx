@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { adminApi } from "@jungle/api-client";
@@ -29,7 +29,7 @@ export default function AffiliatesPage() {
         data={(data?.data ?? []) as ({ id: number } & Record<string, unknown>)[]}
         columns={columns}
         isLoading={isLoading}
-        pagination={data ? { page, total: data.meta.total ?? 0, perPage: 20, onPageChange: setPage } : undefined}
+        pagination={data ? { page, total: data?.meta?.total ?? 0, perPage: 20, onPageChange: setPage } : undefined}
       />
     </AdminPageShell>
   );

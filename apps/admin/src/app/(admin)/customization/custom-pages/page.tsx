@@ -1,9 +1,9 @@
-﻿"use client";
+"use client";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { adminApi } from "@jungle/api-client";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
-import { Button, Input, Label, Badge, Card, CardContent, Skeleton, Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@jungle/ui";
+import { Button, Input, Label, Badge, Skeleton, Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@jungle/ui";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 
@@ -35,8 +35,8 @@ export default function CustomPagesPage() {
   return (
     <AdminPageShell title="Custom Pages" actions={<Button size="sm" onClick={openCreate}><Plus className="h-4 w-4 mr-1" /> New Page</Button>}>
       {isLoading ? <Skeleton className="h-48 w-full" /> : (
-        <div className="border rounded-lg divide-y">
-          {pages.length === 0 && <p className="text-center text-muted-foreground py-8 text-sm">No custom pages yet.</p>}
+        <div className="border bg-card divide-y-2 divide-foreground shadow-sm">
+          {pages.length === 0 && <p className="text-center text-muted-foreground py-8 text-sm font-bold uppercase tracking-wide">No custom pages yet.</p>}
           {pages.map((p) => (
             <div key={p.id} className="flex items-center justify-between px-4 py-3">
               <div className="flex items-center gap-3">
@@ -61,7 +61,7 @@ export default function CustomPagesPage() {
               <div className="space-y-1"><Label>Title</Label><Input value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} /></div>
               <div className="space-y-1"><Label>Slug</Label><Input value={form.slug} onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))} placeholder="about-us" /></div>
             </div>
-            <div className="space-y-1"><Label>Content (HTML)</Label><textarea className="w-full min-h-[200px] rounded-md border border-input bg-background px-3 py-2 text-sm" value={form.content} onChange={(e) => setForm((f) => ({ ...f, content: e.target.value }))} /></div>
+            <div className="space-y-1"><Label>Content (HTML)</Label><textarea className="w-full min-h-[200px] border bg-background px-3 py-2 text-sm" value={form.content} onChange={(e) => setForm((f) => ({ ...f, content: e.target.value }))} /></div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>

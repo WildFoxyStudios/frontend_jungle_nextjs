@@ -22,4 +22,26 @@ export const productsApi = {
     api.get<{ id: number; name: string }[]>("/v1/products/categories"),
   searchProducts: (q: string, cursor?: string) =>
     api.get<PaginatedResponse<Product>>("/v1/products/search", { q, cursor }),
+
+  // Saved products
+  saveProduct: (productId: number) =>
+    api.post<void>(`/v1/products/${productId}/save`, { product_id: productId }),
+  unsaveProduct: (productId: number) =>
+    api.delete<void>(`/v1/products/${productId}/save`),
+  getSavedProducts: (cursor?: string) =>
+    api.get<PaginatedResponse<Product>>("/v1/users/me/saved-products", { cursor }),
+
+  /**
+   * Plan §3.6 MK3 — seller dashboard numbers in a single round-trip. The
+   * `sparkline` field is a 30-day (day, orders, revenue) series ready to
+   * plug into a `recharts` `<LineChart>`.
+   */
+  getMyStats: () =>
+    api.get<{
+      products: { total: number; active: number };
+      orders: { total: number; pending: number; delivered: number };
+      revenue_total: string;
+      avg_rating: string | null;
+      sparkline: Array<{ day: string; orders: number; revenue: string }>;
+    }>("/v1/products/me/stats"),
 };

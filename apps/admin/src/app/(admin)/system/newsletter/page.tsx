@@ -33,7 +33,7 @@ export default function NewsletterPage() {
           <div className="space-y-1.5">
             <Label>Content</Label>
             <textarea
-              className="w-full min-h-[200px] rounded-md border border-input bg-background px-3 py-2 text-sm"
+              className="w-full min-h-[200px] border bg-background px-3 py-2 text-sm"
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder="Newsletter content (HTML supported)"

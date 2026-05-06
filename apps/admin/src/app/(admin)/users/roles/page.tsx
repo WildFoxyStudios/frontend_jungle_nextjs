@@ -86,8 +86,8 @@ export default function UserRolesPage() {
       cell: ({ row }) => (
         <Button
           size="sm"
-          variant="outline"
-          className="gap-1 text-destructive hover:text-destructive"
+          variant="destructive"
+          className="gap-1"
           onClick={() => setPending({ user: row.original, action })}
         >
           <action.icon className="h-3.5 w-3.5" /> {action.label}
@@ -103,7 +103,7 @@ export default function UserRolesPage() {
     >
       <div className="space-y-8">
         <div>
-          <h2 className="text-lg font-semibold mb-3">Admins</h2>
+          <h2 className="text-lg font-extrabold uppercase tracking-wide mb-3">Admins</h2>
           <DataTable
             data={(adminData?.data ?? []) as User[]}
             columns={makeColumns(REMOVE_ADMIN)}
@@ -113,7 +113,7 @@ export default function UserRolesPage() {
         </div>
 
         <div>
-          <h2 className="text-lg font-semibold mb-3">Pro Members</h2>
+          <h2 className="text-lg font-extrabold uppercase tracking-wide mb-3">Pro Members</h2>
           <DataTable
             data={(proData?.data ?? []) as User[]}
             columns={makeColumns(REMOVE_PRO)}

@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { adminApi } from "@jungle/api-client";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
-import { Button, Input, Badge, Card, CardContent, Skeleton } from "@jungle/ui";
+import { Button, Input, Badge, Card, CardContent, Skeleton, ConfirmDialog } from "@jungle/ui";
 import { toast } from "sonner";
 import { Plus, Copy } from "lucide-react";
 
@@ -12,6 +12,7 @@ interface ApiKey { id: number; name: string; key: string; is_active: boolean; cr
 export default function ApiKeysPage() {
   const qc = useQueryClient();
   const [name, setName] = useState("");
+  const [deletingKeyId, setDeletingKeyId] = useState<number | null>(null);
   const { data, isLoading } = useQuery({ queryKey: ["admin", "api-keys"], queryFn: () => adminApi.getApiKeys() });
 
   const createMutation = useMutation({
@@ -58,18 +59,31 @@ export default function ApiKeysPage() {
                   }}>
                     {key.is_active ? "Disable" : "Enable"}
                   </Button>
-                  <Button variant="destructive" size="sm" onClick={async () => {
-                    await adminApi.deleteApiKey(key.id);
-                    qc.invalidateQueries({ queryKey: ["admin", "api-keys"] });
-                    toast.success("Deleted");
-                  }}>Delete</Button>
+                  <Button variant="destructive" size="sm" onClick={() => setDeletingKeyId(key.id)}>Delete</Button>
                 </div>
               </CardContent>
             </Card>
           ))}
-          {keys.length === 0 && <p className="text-muted-foreground text-sm">No API keys yet.</p>}
+          {keys.length === 0 && <p className="text-muted-foreground text-sm font-bold uppercase tracking-wide">No API keys yet.</p>}
         </div>
       )}
+
+      <ConfirmDialog
+        open={deletingKeyId !== null}
+        onOpenChange={(o) => { if (!o) setDeletingKeyId(null); }}
+        title="Delete API Key"
+        description="Are you sure you want to delete this API key? Any integrations using it will break."
+        confirmText="Delete"
+        variant="destructive"
+        onConfirm={async () => {
+          if (deletingKeyId !== null) {
+            await adminApi.deleteApiKey(deletingKeyId);
+            qc.invalidateQueries({ queryKey: ["admin", "api-keys"] });
+            toast.success("Deleted");
+            setDeletingKeyId(null);
+          }
+        }}
+      />
     </AdminPageShell>
   );
 }

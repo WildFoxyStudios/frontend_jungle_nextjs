@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useQuery } from "@tanstack/react-query";
 import { adminApi } from "@jungle/api-client";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
@@ -11,7 +11,7 @@ export default function OnlineUsersPage() {
     refetchInterval: 30_000, // refresh every 30s
   });
 
-  const users = (data ?? []) as { id: number; username: string; first_name: string; last_name: string; avatar: string; last_seen: string }[];
+  const users = ((data as { data?: { id: number; username: string; first_name: string; last_name: string; avatar: string; last_seen: string }[] } | undefined)?.data ?? []);
 
   return (
     <AdminPageShell title="Online Users" description={`${users.length} users currently online`}>
@@ -20,9 +20,9 @@ export default function OnlineUsersPage() {
           {Array.from({ length: 10 }).map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
         </div>
       ) : (
-        <div className="border rounded-lg divide-y">
+        <div className="border bg-card divide-y-2 divide-foreground shadow-sm">
           {users.length === 0 && (
-            <p className="text-center text-muted-foreground py-8 text-sm">No users online right now.</p>
+            <p className="text-center text-muted-foreground py-8 text-sm font-bold uppercase tracking-wide">No users online right now.</p>
           )}
           {users.map((user) => (
             <div key={user.id} className="flex items-center gap-3 px-4 py-3">
@@ -34,7 +34,7 @@ export default function OnlineUsersPage() {
                 <p className="text-sm font-medium">{user.first_name} {user.last_name}</p>
                 <p className="text-xs text-muted-foreground">@{user.username}</p>
               </div>
-              <Badge variant="default" className="bg-green-500 text-white text-xs">Online</Badge>
+              <Badge variant="default" className="text-xs">Online</Badge>
             </div>
           ))}
         </div>

@@ -1,12 +1,13 @@
-﻿"use client";
+"use client";
 import { useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { adminApi } from "@jungle/api-client";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
 import { Button, Card, CardContent, Skeleton, Badge } from "@jungle/ui";
 import { toast } from "sonner";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Settings } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 interface StickerPack { id: number; name: string; cover: string; sticker_count: number; is_free: boolean }
 
@@ -23,7 +24,10 @@ export default function StickersPage() {
       fd.append("name", file.name.replace(/\.\w+$/, ""));
       return adminApi.createStickerPack(fd);
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin", "sticker-packs"] }); toast.success("Sticker pack created"); },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin", "sticker-packs"] });
+      toast.success("Sticker pack created — open it to upload stickers in bulk.");
+    },
   });
 
   const deleteMutation = useMutation({
@@ -46,21 +50,28 @@ export default function StickersPage() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {packs.map((pack) => (
             <Card key={pack.id} className="group relative overflow-hidden">
-              <div className="relative aspect-square bg-muted">
+              <div className="relative aspect-square bg-secondary/40">
                 {pack.cover && <Image src={pack.cover} alt={pack.name} fill className="object-cover" />}
               </div>
               <CardContent className="p-3">
                 <p className="text-sm font-medium truncate">{pack.name}</p>
                 <div className="flex items-center justify-between mt-1">
                   <Badge variant={pack.is_free ? "secondary" : "default"}>{pack.is_free ? "Free" : "Paid"}</Badge>
-                  <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => deleteMutation.mutate(pack.id)}>
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
+                  <div className="flex items-center gap-1">
+                    <Link href={`/customization/stickers/${pack.id}`}>
+                      <Button variant="ghost" size="icon" className="h-7 w-7">
+                        <Settings className="h-3.5 w-3.5" />
+                      </Button>
+                    </Link>
+                    <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => deleteMutation.mutate(pack.id)}>
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
           ))}
-          {packs.length === 0 && <p className="col-span-full text-muted-foreground text-sm">No sticker packs yet.</p>}
+          {packs.length === 0 && <p className="col-span-full text-muted-foreground text-sm font-bold uppercase tracking-wide">No sticker packs yet.</p>}
         </div>
       )}
     </AdminPageShell>

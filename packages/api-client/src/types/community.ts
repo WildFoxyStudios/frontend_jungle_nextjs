@@ -71,7 +71,11 @@ export interface Event {
   cover: string;
   start_date: string;
   end_date: string;
+  /** Free-text venue; paired with latitude/longitude when the API exposes them. */
   location: string;
+  /** Present when coordinates are stored server-side. */
+  latitude?: number;
+  longitude?: number;
   going_count: number;
   interested_count: number;
   my_rsvp?: "going" | "interested" | "not_going";

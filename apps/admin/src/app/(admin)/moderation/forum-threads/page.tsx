@@ -69,8 +69,7 @@ export default function ForumThreadsModerationPage() {
       cell: ({ row }) => (
         <Button
           size="sm"
-          variant="ghost"
-          className="text-destructive hover:text-destructive"
+          variant="destructive"
           onClick={() => setPendingId(row.original.id)}
         >
           <Trash2 className="h-3.5 w-3.5" />

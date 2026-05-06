@@ -6,11 +6,13 @@ export interface Message {
   conversation_id: number;
   sender_id: number;
   content: string;
-  message_type: "text" | "image" | "video" | "audio" | "sticker" | "gift" | "file";
+  message_type: "text" | "image" | "video" | "audio" | "sticker" | "gift" | "file" | "call";
   media: MediaItem[];
   sticker_url?: string;
   gift?: Gift;
   reply_to?: Message;
+  /** Original message id when this message was forwarded. */
+  forwarded_from?: number | null;
   is_favorited: boolean;
   is_pinned: boolean;
   reactions: Record<string, number>;
@@ -27,9 +29,16 @@ export interface Conversation {
   last_message?: Message;
   last_message_at: string;
   unread_count: number;
-  is_muted: boolean;
-  is_pinned: boolean;
-  is_archived: boolean;
+  /** Effective mute flag (takes muted_until into account). */
+  muted: boolean;
+  /** ISO timestamp the mute expires at. `null` when muted indefinitely or not muted. */
+  muted_until?: string | null;
+  pinned: boolean;
+  archived: boolean;
+  /** Per-user chat background override. */
+  wallpaper_url?: string | null;
+  /** Disappearing-messages lifetime in seconds. `null` disables the feature. */
+  destruct_after_seconds?: number | null;
   color?: string;
   members: ConversationMember[];
 }

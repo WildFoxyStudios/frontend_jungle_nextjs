@@ -22,8 +22,13 @@ export const paymentsApi = {
       "/v1/payments/create",
       data,
     ),
-  addFunds: (amount: number, gateway: string) =>
-    api.post<{ redirect_url?: string; transaction_id: string }>("/v1/payments/wallet/add", { amount, gateway }),
+  addFunds: (amount: number, provider: string, returnUrl?: string, cancelUrl?: string) =>
+    api.post<{ redirect_url?: string; transaction_id: string }>("/v1/payments/wallet/add", {
+      amount,
+      provider,
+      return_url: returnUrl || window.location.href,
+      cancel_url: cancelUrl || window.location.href,
+    }),
   transferFunds: (data: { userId?: number; username?: string; amount: number }) =>
     api.post<void>("/v1/payments/wallet/transfer", { user_id: data.userId, username: data.username, amount: data.amount }),
   requestWithdrawal: (data: { amount: number; method: string; account_details: string }) =>
@@ -31,8 +36,8 @@ export const paymentsApi = {
   getTransactions: (cursor?: string, filters?: { type?: string; from?: string; to?: string }) =>
     api.get<PaginatedResponse<Transaction>>("/v1/payments/history", { cursor, ...filters }),
   getProPlans: () => api.get<ProPlan[]>("/v1/payments/pro/plans"),
-  subscribePro: (planId: number, gateway: string) =>
-    api.post<{ redirect_url?: string }>("/v1/payments/pro/subscribe", { plan_id: planId, gateway }),
+  subscribePro: (planType: number, period: "monthly" | "yearly") =>
+    api.post<{ redirect_url?: string }>("/v1/payments/pro/subscribe", { plan_type: planType, period }),
   cancelPro: () => api.post<void>("/v1/payments/pro/cancel"),
   requestProRefund: () => api.post<void>("/v1/payments/pro/refund-request"),
   getCreatorTiers: (userId: number) =>

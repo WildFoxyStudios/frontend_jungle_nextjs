@@ -27,7 +27,7 @@ export default function OAuthAppsPage() {
     <AdminPageShell title="OAuth Applications">
       {isLoading ? <Skeleton className="h-48 w-full" /> : (
         <div className="space-y-2">
-          {apps.length === 0 && <p className="text-muted-foreground text-sm">No OAuth apps registered.</p>}
+          {apps.length === 0 && <p className="text-muted-foreground text-sm font-bold uppercase tracking-wide">No OAuth apps registered.</p>}
           {apps.map((app) => (
             <Card key={app.id}>
               <CardContent className="p-4 flex items-center justify-between gap-4">

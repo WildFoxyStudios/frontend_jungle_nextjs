@@ -21,21 +21,34 @@ export default function ForumSectionsPage() {
   const qc = useQueryClient();
   const [pendingDelete, setPendingDelete] = useState<Section | null>(null);
   const [editTarget, setEditTarget] = useState<Section | null | "new">(null);
-  const [form, setForm] = useState({ name: "", description: "" });
+  const [form, setForm] = useState<{ name: string; description: string; sort_order: string }>({
+    name: "",
+    description: "",
+    sort_order: "",
+  });
 
   const { data, isLoading } = useQuery({
     queryKey: ["admin", "forum-sections"],
     queryFn: () => adminApi.getForumSections(),
   });
 
+  const buildPayload = (f: typeof form) => ({
+    name: f.name.trim(),
+    description: f.description.trim(),
+    ...(f.sort_order !== "" && !Number.isNaN(Number(f.sort_order))
+      ? { sort_order: Number(f.sort_order) }
+      : {}),
+  });
+
   const create = useMutation({
-    mutationFn: (d: typeof form) => adminApi.createForumSection(d),
+    mutationFn: (d: typeof form) => adminApi.createForumSection(buildPayload(d)),
     onSuccess: () => { toast.success("Section created"); qc.invalidateQueries({ queryKey: ["admin", "forum-sections"] }); setEditTarget(null); },
     onError: () => toast.error("Failed to create section"),
   });
 
   const update = useMutation({
-    mutationFn: ({ id, d }: { id: number; d: typeof form }) => adminApi.updateForumSection(id, d),
+    mutationFn: ({ id, d }: { id: number; d: typeof form }) =>
+      adminApi.updateForumSection(id, buildPayload(d)),
     onSuccess: () => { toast.success("Section updated"); qc.invalidateQueries({ queryKey: ["admin", "forum-sections"] }); setEditTarget(null); },
     onError: () => toast.error("Failed to update section"),
   });
@@ -46,8 +59,18 @@ export default function ForumSectionsPage() {
     onError: () => toast.error("Failed to delete section"),
   });
 
-  const openCreate = () => { setForm({ name: "", description: "" }); setEditTarget("new"); };
-  const openEdit = (s: Section) => { setForm({ name: s.name, description: s.description ?? "" }); setEditTarget(s); };
+  const openCreate = () => {
+    setForm({ name: "", description: "", sort_order: "" });
+    setEditTarget("new");
+  };
+  const openEdit = (s: Section) => {
+    setForm({
+      name: s.name,
+      description: s.description ?? "",
+      sort_order: s.sort_order != null ? String(s.sort_order) : "",
+    });
+    setEditTarget(s);
+  };
 
   const handleSave = async () => {
     if (editTarget === "new") { await create.mutateAsync(form); }
@@ -67,7 +90,7 @@ export default function ForumSectionsPage() {
       cell: ({ row }) => (
         <div className="flex gap-1">
           <Button size="sm" variant="ghost" onClick={() => openEdit(row.original)}><Pencil className="h-3.5 w-3.5" /></Button>
-          <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => setPendingDelete(row.original)}>
+          <Button size="sm" variant="destructive" onClick={() => setPendingDelete(row.original)}>
             <Trash2 className="h-3.5 w-3.5" />
           </Button>
         </div>
@@ -96,6 +119,16 @@ export default function ForumSectionsPage() {
             <div className="space-y-1.5">
               <Label htmlFor="sec-desc">Description</Label>
               <Input id="sec-desc" value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="sec-order">Sort order</Label>
+              <Input
+                id="sec-order"
+                type="number"
+                value={form.sort_order}
+                onChange={(e) => setForm((f) => ({ ...f, sort_order: e.target.value }))}
+                placeholder="Lower numbers shown first"
+              />
             </div>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setEditTarget(null)}>Cancel</Button>

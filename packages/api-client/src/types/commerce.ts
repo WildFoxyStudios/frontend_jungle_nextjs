@@ -32,6 +32,8 @@ export interface ProductReview {
 
 export interface Job {
   id: number;
+  /** Owner user id (commerce API includes this on job rows). */
+  user_id?: number;
   title: string;
   description: string;
   category: string;
@@ -42,15 +44,31 @@ export interface Job {
   job_type: "full_time" | "part_time" | "contract" | "freelance" | "internship";
   questions: JobQuestion[];
   application_count: number;
-  poster: PublicUser;
+  poster?: PublicUser | null;
   is_active: boolean;
   created_at: string;
 }
 
+/**
+ * Plan §3.15 JA1 — structured job application question.
+ *
+ * `question_type` controls how the frontend renders the input:
+ * - `free_text`       → `<Textarea>` (default)
+ * - `yes_no`          → `<RadioGroup>` with Yes/No
+ * - `multiple_choice` → `<Select>` populated from `options`
+ *
+ * The backend stores questions in the `job_questions` table (migration
+ * `20260422000011_job_question_types.sql`) but legacy jobs still expose
+ * rows with only `id`/`question`/`required`, which implicitly default to
+ * `free_text` — hence the optional `question_type`.
+ */
 export interface JobQuestion {
   id: number;
   question: string;
   required: boolean;
+  question_type?: "free_text" | "yes_no" | "multiple_choice";
+  /** Only populated for `multiple_choice`; empty otherwise. */
+  options?: string[];
 }
 
 export interface JobApplication {
@@ -120,6 +138,8 @@ export interface Order {
   tracking_number?: string;
   shipping_address: Address;
   payment_method: string;
+  /** Set by commerce-service (`orders.payment_status`). */
+  payment_status?: string;
   created_at: string;
   updated_at: string;
 }
@@ -135,4 +155,29 @@ export interface Address {
   postal_code: string;
   phone: string;
   is_default: boolean;
+}
+
+export interface SavedJob {
+  id: number;
+  title: string;
+  location?: string;
+  created_at: string;
+}
+
+export interface JobAlert {
+  id: number;
+  query?: string;
+  frequency: "daily" | "weekly";
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface Resume {
+  id: number;
+  file_url: string;
+  file_name?: string;
+  extracted_text?: string;
+  skills?: string[];
+  experience_years?: number;
+  uploaded_at: string;
 }

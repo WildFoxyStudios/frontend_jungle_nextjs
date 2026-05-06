@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   useReactTable,
   getCoreRowModel,
@@ -63,11 +64,14 @@ export function DataTable<T extends { id: number | string }>({
   data,
   columns,
   isLoading,
-  searchPlaceholder = "Search…",
+  searchPlaceholder,
   onSearch,
   bulkActions,
   pagination,
 }: DataTableProps<T>) {
+  const td = useTranslations("admin.dataTable");
+  const tc = useTranslations("common");
+  const placeholder = searchPlaceholder ?? td("search");
   const [sorting, setSorting] = useState<SortingState>([]);
   const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -114,19 +118,21 @@ export function DataTable<T extends { id: number | string }>({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         {onSearch && (
           <Input
-            placeholder={searchPlaceholder}
+            placeholder={placeholder}
             value={searchQuery}
             onChange={handleSearch}
-            className="max-w-sm"
+            className="w-full max-w-sm sm:w-auto"
           />
         )}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {bulkActions && selectedIds.length > 0 && (
             <>
-              <span className="text-sm text-muted-foreground">{selectedIds.length} selected</span>
+              <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                {selectedIds.length} {td("selected")}
+              </span>
               {bulkActions.map((action) => (
                 <Button
                   key={action.label}
@@ -140,12 +146,12 @@ export function DataTable<T extends { id: number | string }>({
             </>
           )}
           <Button variant="outline" size="sm" onClick={() => exportToCsv(data, columns)}>
-            <Download className="h-4 w-4 mr-1" /> Export
+            <Download className="h-4 w-4 mr-1" /> {td("export")}
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm">
-                <Columns className="h-4 w-4 mr-1" /> Columns
+                <Columns className="h-4 w-4 mr-1" /> {td("columns")}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -163,7 +169,7 @@ export function DataTable<T extends { id: number | string }>({
         </div>
       </div>
 
-      <div className="rounded-md border">
+      <div className="overflow-x-auto rounded-lg border border-border-subtle bg-card shadow-sm">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((hg) => (
@@ -181,14 +187,14 @@ export function DataTable<T extends { id: number | string }>({
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={columns.length + 1} className="text-center py-8 text-muted-foreground">
-                  Loading…
+                <TableCell colSpan={columns.length + 1} className="py-10 text-center text-sm font-bold uppercase tracking-wide text-muted-foreground">
+                  {td("loading")}
                 </TableCell>
               </TableRow>
             ) : table.getRowModel().rows.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={columns.length + 1} className="text-center py-8 text-muted-foreground">
-                  No results found.
+                <TableCell colSpan={columns.length + 1} className="py-10 text-center text-sm font-bold uppercase tracking-wide text-muted-foreground">
+                  {td("noResults")}
                 </TableCell>
               </TableRow>
             ) : (
@@ -207,10 +213,13 @@ export function DataTable<T extends { id: number | string }>({
       </div>
 
       {pagination && (
-        <div className="flex items-center justify-between text-sm text-muted-foreground">
+        <div className="flex flex-wrap items-center justify-between gap-3 text-xs font-bold uppercase tracking-wide text-muted-foreground">
           <span>
-            Showing {Math.min((pagination.page - 1) * pagination.perPage + 1, pagination.total)}–
-            {Math.min(pagination.page * pagination.perPage, pagination.total)} of {pagination.total}
+            {td("showingRange", {
+              from: Math.min((pagination.page - 1) * pagination.perPage + 1, pagination.total),
+              to: Math.min(pagination.page * pagination.perPage, pagination.total),
+              total: pagination.total,
+            })}
           </span>
           <div className="flex gap-2">
             <Button
@@ -219,7 +228,7 @@ export function DataTable<T extends { id: number | string }>({
               disabled={pagination.page <= 1}
               onClick={() => pagination.onPageChange(pagination.page - 1)}
             >
-              Previous
+              {tc("previous")}
             </Button>
             <Button
               variant="outline"
@@ -227,7 +236,7 @@ export function DataTable<T extends { id: number | string }>({
               disabled={pagination.page * pagination.perPage >= pagination.total}
               onClick={() => pagination.onPageChange(pagination.page + 1)}
             >
-              Next
+              {tc("next")}
             </Button>
           </div>
         </div>

@@ -70,7 +70,7 @@ export default function PaymentRequestsPage() {
       description="Monitor payment transactions across all gateways. Pending transactions are shown by default."
       actions={
         <select
-          className="text-sm border rounded px-2 py-1 bg-background"
+          className="text-sm border bg-background px-2 py-1"
           value={status ?? ""}
           onChange={(e) => { setStatus(e.target.value || undefined); setPage(1); }}
         >
@@ -87,7 +87,7 @@ export default function PaymentRequestsPage() {
         columns={columns}
         isLoading={isLoading}
         searchPlaceholder="Search transactions…"
-        pagination={{ page, total: data?.meta.total ?? 0, perPage: 20, onPageChange: setPage }}
+        pagination={{ page, total: data?.meta?.total ?? 0, perPage: 20, onPageChange: setPage }}
       />
     </AdminPageShell>
   );

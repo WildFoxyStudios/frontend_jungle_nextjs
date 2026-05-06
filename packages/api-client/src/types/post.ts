@@ -6,6 +6,8 @@ export interface MediaItem {
   url: string;
   type: "image" | "video" | "audio" | "file";
   thumbnail?: string;
+  /** Some handlers store server-generated or custom cover here */
+  thumbnail_url?: string;
   width?: number;
   height?: number;
   duration?: number;
@@ -72,7 +74,8 @@ export interface Post {
     | "product"
     | "ad"
     | "live"
-    | "audio";
+    | "audio"
+    | "forum";
   media: MediaItem[];
   media_url?: string;
   colored_post?: ColoredPost;

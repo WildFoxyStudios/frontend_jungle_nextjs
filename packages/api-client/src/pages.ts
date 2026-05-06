@@ -70,6 +70,23 @@ export const pagesApi = {
       "/v1/pages/nearby",
       params as unknown as Record<string, string | number | boolean>
     ),
+
+  /**
+   * Plan §3.5 PG1 — auto-reply configuration for messages sent to a page.
+   * Only page admins / owners may read or mutate this setting.
+   */
+  getAutoresponder: (id: number) =>
+    api.get<{ enabled: boolean; message: string }>(
+      `/v1/pages/${id}/autoresponder`,
+    ),
+  updateAutoresponder: (
+    id: number,
+    data: { enabled: boolean; message: string },
+  ) =>
+    api.put<{ enabled: boolean; message: string }>(
+      `/v1/pages/${id}/autoresponder`,
+      data,
+    ),
 };
 
 export interface NearbyPage {

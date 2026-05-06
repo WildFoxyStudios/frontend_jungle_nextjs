@@ -26,10 +26,10 @@ export default function BannedIPsPage() {
 
   return (
     <AdminPageShell title="Banned IPs">
-      <div className="flex gap-2 max-w-sm">
+      <form onSubmit={(e) => { e.preventDefault(); handleAdd(); }} className="flex gap-2 max-w-sm">
         <Input placeholder="IP address" value={newIP} onChange={(e) => setNewIP(e.target.value)} />
-        <Button onClick={handleAdd}>Add</Button>
-      </div>
+        <Button type="submit">Add</Button>
+      </form>
       <div className="space-y-2 mt-4">
         {isLoading ? <p className="text-muted-foreground">Loading…</p> : (data ?? []).map((item) => (
           <Card key={item.ip}>
