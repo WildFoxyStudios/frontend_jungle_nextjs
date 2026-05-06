@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, Badge } from "@jungle/ui";
+import { Card, CardContent, CardHeader, CardTitle, Badge } from "@jungle/ui";
 import { CheckCircle2, AlertTriangle } from "lucide-react";
 
 export const metadata: Metadata = {

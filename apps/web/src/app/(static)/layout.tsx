@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 
+export const dynamic = "force-dynamic";
+
 export default function StaticLayout({ children }: { children: ReactNode }) {
  return (
  <div className="flex min-h-svh flex-col">

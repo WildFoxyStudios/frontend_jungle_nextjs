@@ -33,7 +33,7 @@ export default function RefundPage() {
  setIsPro((u.is_pro ?? 0) > 0);
  setAlreadyRequested(!!u.refund_requested);
  if ((u.is_pro ?? 0) > 0 && planList.length > 0) {
- setProType(String(planList[0]?.id ?? ""));
+ setProType(String(planList[0]?.type ?? ""));
  }
  }
  }).finally(() => setLoading(false));
@@ -102,8 +102,8 @@ export default function RefundPage() {
  <Select value={proType} onValueChange={setProType}>
  <SelectTrigger id="refund-membership"><SelectValue placeholder="Select plan" /></SelectTrigger>
  <SelectContent>
- {plans.filter((p) => p.id > 0).map((p) => (
- <SelectItem key={p.id} value={String(p.id)}>{p.name}</SelectItem>
+ {plans.filter((p) => p.type > 0).map((p) => (
+ <SelectItem key={p.type} value={String(p.type)}>{p.name}</SelectItem>
  ))}
  </SelectContent>
  </Select>

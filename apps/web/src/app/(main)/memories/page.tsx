@@ -1,10 +1,7 @@
+"use client";
+
 import React, { Suspense } from "react";
 import { MemoriesClient } from "./MemoriesClient";
-
-export const metadata = {
-  title: "Memories | Jungle",
-  description: "Relive your past moments and memories.",
-};
 
 function ErrorFallback() {
   return (
@@ -33,19 +30,17 @@ class MemoriesErrorBoundary extends React.Component<
     return { hasError: true };
   }
   render() {
-    if (this.state.hasError) return React.createElement(ErrorFallback);
+    if (this.state.hasError) return <ErrorFallback />;
     return this.props.children;
   }
 }
 
 export default function MemoriesPage() {
-  return React.createElement(
-    MemoriesErrorBoundary,
-    null,
-    React.createElement(
-      Suspense,
-      { fallback: React.createElement('div', { className: 'flex items-center justify-center py-20' }, React.createElement('div', { className: 'h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent' })) },
-      React.createElement(MemoriesClient)
-    )
+  return (
+    <MemoriesErrorBoundary>
+      <Suspense fallback={<div className="flex items-center justify-center py-20"><div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>}>
+        <MemoriesClient />
+      </Suspense>
+    </MemoriesErrorBoundary>
   );
 }

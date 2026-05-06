@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { storiesApi } from "@jungle/api-client";
 import { Button, Input, Label, Progress, Textarea } from "@jungle/ui";
 import { useAdvancedMediaUpload } from "@/hooks/use-advanced-media-upload";
-import { ImagePlus, Palette, Sparkles, Type, Video } from "lucide-react";
+import { ImagePlus, Palette, Sparkles, Type } from "lucide-react";
 import { EmojiPicker } from "@/components/shared/EmojiPicker";
 import { toast } from "sonner";
 

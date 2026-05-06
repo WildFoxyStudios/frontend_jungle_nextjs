@@ -7,7 +7,6 @@ import { Toaster } from "sonner";
 import { ProgressLoader } from "@/components/layout/ProgressLoader";
 import { ObservabilityProvider } from "@/components/observability/ObservabilityProvider";
 import "./globals.css";
-import "leaflet/dist/leaflet.css";
 import { Suspense } from "react";
 
 const inter = Inter({

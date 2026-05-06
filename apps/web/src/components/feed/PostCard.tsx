@@ -12,7 +12,7 @@ import {
 } from "@jungle/ui";
 import {
  MapPin, Globe, Lock, Users, FileText, ExternalLink, Loader2,
- ShieldAlert, UserCheck, UserPlus, BadgeCheck, Star, Megaphone, TrendingUp,
+ ShieldAlert, UserCheck, UserPlus, Megaphone, TrendingUp,
 } from "lucide-react";
 import { CommentList } from "./CommentList";
 import { CommentForm } from "./CommentForm";
@@ -228,7 +228,6 @@ export const PostCard = React.memo(function PostCard({
  });
 
  const isAnonymous = post.privacy === "anonymous" && !isOwn;
- const hasMedia = imageVideoMedia.length > 0 && post.post_type !== "live";
 
  return (
  <div

@@ -348,17 +348,6 @@ export function PostComposer({ groupId, pageId, onSuccess }: PostComposerProps) 
  };
 
  const hasUploadingMedia = pendingMedia.some((m) => (m as unknown as Record<string, unknown>)._uploading);
- const privacyLabel = privacy === "public"
- ? tc("public")
- : privacy === "friends"
- ? tc("friends")
- : privacy === "only_me"
- ? tc("onlyMe")
- : privacy === "people_i_follow"
- ? tp("peopleIFollow")
- : privacy === "people_follow_me"
- ? tp("peopleFollowMe")
- : tp("anonymous");
 
  const handleSubmit = async () => {
  if (!content.trim() && pendingMedia.length === 0) return;

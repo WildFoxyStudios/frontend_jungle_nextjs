@@ -14,23 +14,16 @@ import { resolveAvatarUrl } from "@/lib/avatar";
 import { useTranslations } from "next-intl";
 import {
 	Search, MapPin, Briefcase, DollarSign, Clock, Bookmark, Building2,
-	Filter, X, ChevronRight,
+	X, ChevronRight,
 } from "lucide-react";
 import { toast } from "sonner";
 
-const DATE_FILTERS = [
-	{ id: "", label: "anyTime" },
-	{ id: "24h", label: "past24h" },
-	{ id: "week", label: "pastWeek" },
-	{ id: "month", label: "pastMonth" },
-] as const;
 
 export default function JobsPage() {
 	const router = useRouter();
 	const searchParams = useSearchParams();
 	const { user } = useAuthStore();
 	const [jobs, setJobs] = useState<Job[]>([]);
-	const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [searchQuery, setSearchQuery] = useState("");
 	const [locationQuery, setLocationQuery] = useState("");
@@ -45,13 +38,6 @@ export default function JobsPage() {
 
 	const t = useTranslations("jobs");
 	const { data: jobTypes } = useLookups("job_type");
-	const { data: experienceLevels } = useLookups("experience");
-
-	useEffect(() => {
-		jobsApi.getCategories()
-			.then(setCategories)
-			.catch(() => { /* silent */ });
-	}, []);
 
 	// Restore selected job from URL on mount
 	useEffect(() => {
@@ -115,17 +101,17 @@ export default function JobsPage() {
 		fetchJobs();
 	}, [fetchJobs]);
 
-	const handleSelectJob = (job: Job) => {
+	const handleSelectJob = useCallback((job: Job) => {
 		setSelectedJob(job);
 		router.replace(`/jobs?selected=${job.id}`, { scroll: false });
-	};
+	}, [router]);
 
 	const handleClearSelected = () => {
 		setSelectedJob(null);
 		router.replace("/jobs", { scroll: false });
 	};
 
-	const handleSaveJob = async (jobId: number, e: React.MouseEvent) => {
+	const handleSaveJob = useCallback(async (jobId: number, e: React.MouseEvent) => {
 		e.stopPropagation();
 		e.preventDefault();
 		try {
@@ -134,9 +120,9 @@ export default function JobsPage() {
 		} catch {
 			toast.error("Failed to save job");
 		}
-	};
+	}, []);
 
-	const handleUnsaveJob = async (jobId: number, e: React.MouseEvent) => {
+	const handleUnsaveJob = useCallback(async (jobId: number, e: React.MouseEvent) => {
 		e.stopPropagation();
 		e.preventDefault();
 		setSavedJobs((prev) => {
@@ -144,7 +130,7 @@ export default function JobsPage() {
 			next.delete(jobId);
 			return next;
 		});
-	};
+	}, []);
 
 	const clearFilters = () => {
 		setSearchQuery("");
@@ -246,7 +232,7 @@ export default function JobsPage() {
 				</div>
 			</button>
 		);
-	}), [jobs, savedJobs, appliedJobIds, selectedJob, t, handleSaveJob, handleUnsaveJob, handleSelectJob]);
+	}), [jobs, savedJobs, appliedJobIds, selectedJob, t, jobTypes, handleSaveJob, handleUnsaveJob, handleSelectJob]);
 
 	return (
 		<div className="flex h-[calc(100vh-var(--header-height,3.5rem))] overflow-hidden">
@@ -422,7 +408,6 @@ function JobDetailPanel({
 	timeAgo: (d: string) => string;
 	jobTypes: import("@jungle/api-client").LookupItem[];
 }) {
-	const [applyOpen, setApplyOpen] = useState(false);
 	const { user } = useAuthStore();
 
 	const ownerId = job.user_id ?? job.poster?.id;
@@ -519,8 +504,8 @@ function JobDetailPanel({
 						</Link>
 					</Button>
 				) : (
-					<Button className="flex-1" onClick={() => setApplyOpen(true)} disabled={!job.is_active || isApplied}>
-						{isApplied ? "Applied" : t("apply")}
+					<Button className="flex-1" disabled={!job.is_active || isApplied} asChild>
+						<Link href={`/jobs/${job.id}`}>{isApplied ? "Applied" : t("apply")}</Link>
 					</Button>
 				)}
 				<Button variant="outline" size="icon" onClick={isSaved ? onUnsave : handleSave}>

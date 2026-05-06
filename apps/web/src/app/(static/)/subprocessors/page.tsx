@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Card, CardContent, CardHeader, CardTitle } from "@jungle/ui";
+import { Card, CardContent } from "@jungle/ui";
 
 export const metadata: Metadata = {
  title: "Subprocessors — Jungle",

@@ -60,7 +60,7 @@ function renderValue(value: unknown) {
   return React.createElement("span", null, String(value));
 }
 
-function DataItemCard({ item, index }: { item: unknown; index: number }) {
+function DataItemCard({ item }: { item: unknown; index: number }) {
   if (!item || typeof item !== "object" || Array.isArray(item)) {
     return React.createElement("div", { className: "p-3 rounded-lg border text-sm" }, renderValue(item));
   }
@@ -99,7 +99,7 @@ function CategoryViewDialog({ category, open, onOpenChange }: { category: Catego
  : result;
  setData(unwrapped);
  }
- } catch (e) {
+ } catch {
  setError("Failed to load data. The endpoint may not be available yet.");
  setData(null);
  } finally {

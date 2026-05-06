@@ -25,7 +25,7 @@ export default function UpgradedPage() {
  ]).then(([user, plans]) => {
  const u = user as { is_pro?: number; pro_type?: number } | null;
  if (u && u.pro_type) {
- const match = (plans as ProPlan[]).find((p) => p.id === u.pro_type);
+ const match = (plans as ProPlan[]).find((p) => p.type === u.pro_type);
  if (match) setPlan(match);
  }
  }).finally(() => setLoading(false));
@@ -44,7 +44,7 @@ export default function UpgradedPage() {
  {/* Icon */}
  <div className="relative flex justify-center mb-4">
  <div className="bg-gradient-to-br from-primary/20 to-primary/5 rounded-full p-6 ring-4 ring-primary/10">
- {plan ? (PLAN_ICONS[plan.id] ?? <Sparkles className="h-16 w-16 text-primary" />) : (
+ {plan ? (PLAN_ICONS[plan.type] ?? <Sparkles className="h-16 w-16 text-primary" />) : (
  <Sparkles className="h-16 w-16 text-primary" />
  )}
  </div>
@@ -68,10 +68,16 @@ export default function UpgradedPage() {
  </div>
 
  {/* Plan features */}
- {plan?.features && plan.features.length > 0 && (
+ {plan && (
  <div className="space-y-2 bg-muted/40 p-4 text-left">
  <p className="text-sm font-semibold text-center mb-3">What you unlocked:</p>
- {plan.features.slice(0, 6).map((f: string, i: number) => (
+ {([
+ plan.featured_member && "Featured Member",
+ plan.profile_visitors && "Profile Visitors",
+ plan.verified_badge && "Verified Badge",
+ plan.posts_promotion ? `${plan.posts_promotion} Post Promotions` : null,
+ plan.pages_promotion ? `${plan.pages_promotion} Page Promotions` : null,
+ ].filter(Boolean) as string[]).map((f, i) => (
  <div key={i} className="flex items-center gap-2 text-sm">
  <Check className="h-4 w-4 text-primary shrink-0" />
  <span>{f}</span>

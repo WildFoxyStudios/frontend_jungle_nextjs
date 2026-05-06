@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { productsApi } from "@jungle/api-client";
 import {
 	Button, Card, CardContent, CardHeader, CardTitle, Input, Label, Textarea,
-	Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Badge,
+	Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@jungle/ui";
 import { useMediaUpload, useLookups } from "@jungle/hooks";
 import { toast } from "sonner";
@@ -17,7 +17,7 @@ export default function CreateProductPage() {
 	const fileRef = useRef<HTMLInputElement>(null);
 	const { uploadImage, isUploading } = useMediaUpload();
 	const { data: conditions } = useLookups("condition");
-	const { data: currencies } = useLookups("currency");
+
 	const [form, setForm] = useState({
 		name: "", description: "", price: "", currency: "USD",
 		category: "", location: "", condition: "",
@@ -95,6 +95,7 @@ export default function CreateProductPage() {
 							<div className="flex flex-wrap gap-2">
 								{imageUrls.map((url, i) => (
 									<div key={url} className="relative h-20 w-20 rounded-lg border overflow-hidden">
+										{/* eslint-disable-next-line @next/next/no-img-element */}
 										<img src={url} alt="" className="h-full w-full object-cover" />
 										<button
 											type="button"

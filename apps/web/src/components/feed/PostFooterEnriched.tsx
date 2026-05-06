@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { ThumbsUp, MessageCircle, Share2, Repeat2, Eye } from "lucide-react";
-import { Button } from "@jungle/ui";
 import { ReactionPicker } from "./ReactionPicker";
 import { ShareDialog } from "./ShareDialog";
 import { ReactorsLightbox } from "./ReactorsLightbox";

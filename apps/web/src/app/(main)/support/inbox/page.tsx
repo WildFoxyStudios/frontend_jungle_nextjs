@@ -38,7 +38,7 @@ export default function SupportInboxPage() {
  ? (result as Record<string, unknown>).data as Appeal[]
  : [];
  setAppeals(list);
- } catch (e) {
+ } catch {
  setAppeals([]);
  } finally {
  setLoading(false);
@@ -64,7 +64,7 @@ export default function SupportInboxPage() {
  setNewContent("");
  setDialogOpen(false);
  toast.success("Appeal submitted successfully");
- } catch (e) {
+ } catch {
  toast.error("Failed to submit appeal");
  } finally {
  setSubmitting(false);

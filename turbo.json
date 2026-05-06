@@ -1,5 +1,6 @@
 {
   "ui": "tui",
+  "globalPassThroughEnv": ["BACKEND_URL"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],

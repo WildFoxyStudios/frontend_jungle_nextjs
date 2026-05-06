@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Button, Card, CardContent, Switch, Label } from "@jungle/ui";
+import { Button, Switch, Label } from "@jungle/ui";
 import { X } from "lucide-react";
 import { useTranslations } from "next-intl";
 

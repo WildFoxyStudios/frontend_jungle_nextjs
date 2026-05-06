@@ -11,7 +11,7 @@ import {
 } from "@jungle/ui";
 import { useRealtimeEvent } from "@jungle/hooks";
 import { useTranslations } from "next-intl";
-import { Search, ShoppingBag, MapPin, Heart, Clock, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, ShoppingBag, MapPin, Heart, Clock } from "lucide-react";
 import { toast } from "sonner";
 
 const SORT_OPTIONS = [

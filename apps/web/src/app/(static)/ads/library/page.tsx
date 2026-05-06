@@ -4,8 +4,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, Input, Button, Badge, Avatar, AvatarImage, AvatarFallback } from "@jungle/ui";
 import { api } from "@jungle/api-client";
-import { toast } from "sonner";
-import { Loader2, Search, Megaphone, ExternalLink } from "lucide-react";
+import { Search, Megaphone, ExternalLink } from "lucide-react";
 
 interface AdItem {
  id: number;
@@ -48,7 +47,7 @@ export default function AdLibraryPage() {
  setAds([]);
  setApiExists(true);
  }
- } catch (e) {
+ } catch {
  setApiExists(false);
  setAds([]);
  } finally {

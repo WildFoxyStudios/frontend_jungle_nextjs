@@ -45,7 +45,7 @@ export function CommentForm({ postId, replyTo, onSuccess }: CommentFormProps) {
  const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
  const inputRef = useRef<HTMLInputElement>(null);
  const imageInputRef = useRef<HTMLInputElement>(null);
- const formRef = useRef<HTMLFormElement>(null);
+
  const { uploadProcessedMedia, isBusy: isUploading } = useAdvancedMediaUpload();
 
  const [mentionQuery, setMentionQuery] = useState("");

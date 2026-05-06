@@ -34,7 +34,7 @@ export default function FriendListsPage() {
  ? (result as Record<string, unknown>).data
  : result;
  setLists(Array.isArray(data) ? data as FriendList[] : []);
- } catch (e) {
+ } catch {
  setLists([]);
  // If endpoint not available, silently show empty
  } finally {
@@ -58,7 +58,7 @@ export default function FriendListsPage() {
  setNewListName("");
  setDialogOpen(false);
  toast.success(`List "${name}" created`);
- } catch (e) {
+ } catch {
  toast.error("Failed to create list");
  } finally {
  setCreating(false);
@@ -71,7 +71,7 @@ export default function FriendListsPage() {
  await api.delete(`/v1/friends/lists/${id}`);
  setLists((prev) => prev.filter((l) => l.id !== id));
  toast.success("List deleted");
- } catch (e) {
+ } catch {
  toast.error("Failed to delete list");
  } finally {
  setDeletingId(null);

@@ -3,11 +3,10 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { jobsApi } from "@jungle/api-client";
-import { useMediaUpload, useLookups } from "@jungle/hooks";
+import { useLookups } from "@jungle/hooks";
 import {
 	Button, Card, CardContent, CardHeader, CardTitle, Input, Label, Textarea,
-	Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Badge, Separator,
-	Checkbox, RadioGroup, RadioGroupItem,
+	Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Badge, Checkbox,
 } from "@jungle/ui";
 import { toast } from "sonner";
 import { PlacesAutocomplete } from "@/components/shared/PlacesAutocomplete";
@@ -30,7 +29,7 @@ function nextQId() {
 
 export default function CreateJobPage() {
 	const router = useRouter();
-	const { uploadImage, isUploading } = useMediaUpload();
+
 	const [form, setForm] = useState({
 		title: "", category: "", location: "", salary_min: "", salary_max: "",
 		currency: "USD", job_type: "full_time",

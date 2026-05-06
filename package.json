@@ -22,13 +22,13 @@
     "@types/node": "^25.6.0",
     "prettier": "^3.8.3",
     "tsx": "^4.21.0",
-    "turbo": "^2.9.6",
+    "turbo": "^2.9.9",
     "typescript": "^6.0.3"
   },
   "packageManager": "pnpm@10.33.2",
   "dependencies": {
     "date-fns": "^4.1.0",
-    "skills": "^1.5.1"
+    "skills": "^1.5.5"
   },
   "workspaces": [
     "apps/*",
@@ -37,15 +37,16 @@
   ],
   "pnpm": {
     "overrides": {
-      "postcss": "^8.5.12"
+      "postcss": "^8.5.12",
+      "axios": ">=1.15.2"
     },
     "ignoredBuiltDependencies": [
+      "@parcel/watcher",
       "@sentry/cli",
+      "@swc/core",
       "core-js",
       "esbuild",
-      "protobufjs",
-      "sharp",
-      "unrs-resolver"
+      "protobufjs"
     ]
   }
 }

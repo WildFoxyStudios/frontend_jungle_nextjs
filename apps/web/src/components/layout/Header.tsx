@@ -39,8 +39,7 @@ import { useStaffFlagsSync } from "@/hooks/use-staff-flags-sync";
  */
 export function Header() {
  const [balance, setBalance] = useState<number | null>(null);
- const { user, accessToken } = useAuthStore();
- const t = useTranslations("header");
+ const { user } = useAuthStore();
  const tn = useTranslations("nav_extra");
  const adminPanelUrl = getAdminPanelUrl();
  const showAdminEntry = userCanAccessAdminPanel(user);

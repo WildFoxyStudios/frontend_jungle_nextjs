@@ -179,7 +179,7 @@ function ChatBubble({
  .getMessages(conversation.id)
  .then((r) => setMessages(Array.isArray(r?.data) ? [...r.data].reverse() : []))
  .catch((err) => toast.error(err instanceof Error ? err.message : t("failedToLoadMessages")));
- }, [conversation.id]);
+ }, [conversation.id, t]);
 
  useEffect(() => {
  if (!minimized) {

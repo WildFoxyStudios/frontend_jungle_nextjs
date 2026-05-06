@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, Input } from "@jungle/ui";
+import { Card, CardHeader, CardTitle, CardDescription, Input } from "@jungle/ui";
 import Link from "next/link";
 import { Search } from "lucide-react";
 

@@ -144,7 +144,8 @@ export default function FeedPage() {
  if (id === undefined || !isFeedRoute) return;
  const el = document.querySelector<HTMLElement>(`[data-feed-post-id="${id}"]`);
  el?.scrollIntoView({ block: "nearest", behavior: "smooth" });
- }, [kbdIdx, isFeedRoute, postIdsSig]);
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+   }, [kbdIdx, isFeedRoute, postIdsSig]);
 
  const handleNewPost = useCallback((post: Post) => {
  setLocalPosts((prev) => [post, ...prev]);

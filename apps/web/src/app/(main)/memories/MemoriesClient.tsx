@@ -24,7 +24,7 @@ export function MemoriesClient() {
  toast.error(tm("loadError") || "Could not load memories");
  })
  .finally(() => setLoading(false));
- }, []);
+ }, [tm]);
 
  const lcpPostId = posts.length === 0 ? null : firstHeroImagePostId(posts);
 

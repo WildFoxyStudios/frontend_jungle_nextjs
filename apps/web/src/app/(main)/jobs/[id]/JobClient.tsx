@@ -13,7 +13,7 @@ import { looksLikeHtml, linkifyHtml, sanitizeHtml } from "@/lib/linkify-html";
 import { toast } from "sonner";
 import {
 	MapPin, Briefcase, DollarSign, Users, Calendar, Share2, Send,
-	Bookmark, Building2, Clock, Globe, ArrowLeft, ShieldCheck,
+	Bookmark, Building2, Clock, ArrowLeft, ShieldCheck,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { JobApplyModal } from "@/components/jobs/JobApplyModal";
@@ -32,7 +32,7 @@ export function JobClient({ id }: Props) {
 
 	const t = useTranslations("jobs");
 	const { data: jobTypes } = useLookups("job_type");
-	const { data: benefits } = useLookups("benefit");
+
 
 	const fetchJob = useCallback(() => {
 		setLoading(true);

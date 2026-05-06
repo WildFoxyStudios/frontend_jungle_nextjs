@@ -6,7 +6,7 @@ import { jobsApi } from "@jungle/api-client";
 import type { SavedJob } from "@jungle/api-client";
 import { Button, Skeleton, Badge } from "@jungle/ui";
 import { useTranslations } from "next-intl";
-import { Bookmark, Briefcase, MapPin, ArrowLeft, Trash2 } from "lucide-react";
+import { Bookmark, Briefcase, MapPin, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 
 export default function SavedJobsPage() {

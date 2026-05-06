@@ -53,7 +53,7 @@ export default function ExplorePage() {
  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3">
  {(() => {
  const lcpId = firstHeroImagePostId(visualPosts);
- return visualPosts.map((p: Post, idx: number) => {
+ return visualPosts.map((p: Post) => {
  const cover = p.media?.find((m) => m.type === "image") ?? p.media?.[0];
  const isVideo = cover?.type === "video";
  const isLcpCell = lcpId !== null && p.id === lcpId && !isVideo && !!cover?.url;

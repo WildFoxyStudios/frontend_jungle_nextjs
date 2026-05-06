@@ -10,7 +10,7 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
  useEffect(() => {
  setViewerUserId(user?.id ?? null);
  if (!user) clearOpenMessageThreads();
- }, [user?.id, setViewerUserId, clearOpenMessageThreads]);
+ }, [user, setViewerUserId, clearOpenMessageThreads]);
 
  useEffect(() => {
  if (isAuthenticated && accessToken) {
