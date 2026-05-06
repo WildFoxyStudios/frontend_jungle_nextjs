@@ -242,6 +242,7 @@
     "willPublishAt": "Will publish at {date}",
     "optimizing": "Optimizing",
     "uploading": "Uploading",
+    "failedUpload": "Upload failed",
     "funding": "Funding",
     "jobs": "Jobs",
     "offers": "Offers",
@@ -473,7 +474,8 @@
     "conditionRefurbished": "Refurbished",
     "conditionLabel": "Condition",
     "saveProduct": "Save",
-    "unsaveProduct": "Unsave"
+    "unsaveProduct": "Unsave",
+    "location": "Location"
   },
   "settings": {
     "title": "Settings",

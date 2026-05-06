@@ -112,8 +112,9 @@ export class ApiClient {
     // or during HMR Fast Refresh).
     this.hydrateTokensFromStorage();
 
+    const isFormData = typeof FormData !== "undefined" && options.body instanceof FormData;
     const headers: Record<string, string> = {
-      "Content-Type": "application/json",
+      ...(!isFormData && { "Content-Type": "application/json" }),
       ...(options.headers as Record<string, string>),
     };
 
@@ -273,19 +274,31 @@ export class ApiClient {
 
   post<T>(path: string, body?: unknown): Promise<T> {
     const opts: RequestInit = { method: "POST" };
-    if (body !== undefined) opts.body = JSON.stringify(body);
+    if (body !== undefined) {
+      opts.body = typeof FormData !== "undefined" && body instanceof FormData
+        ? body
+        : JSON.stringify(body);
+    }
     return this.request<T>(path, opts);
   }
 
   put<T>(path: string, body?: unknown): Promise<T> {
     const opts: RequestInit = { method: "PUT" };
-    if (body !== undefined) opts.body = JSON.stringify(body);
+    if (body !== undefined) {
+      opts.body = typeof FormData !== "undefined" && body instanceof FormData
+        ? body
+        : JSON.stringify(body);
+    }
     return this.request<T>(path, opts);
   }
 
   patch<T>(path: string, body?: unknown): Promise<T> {
     const opts: RequestInit = { method: "PATCH" };
-    if (body !== undefined) opts.body = JSON.stringify(body);
+    if (body !== undefined) {
+      opts.body = typeof FormData !== "undefined" && body instanceof FormData
+        ? body
+        : JSON.stringify(body);
+    }
     return this.request<T>(path, opts);
   }
 

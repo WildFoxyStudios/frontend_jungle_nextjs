@@ -19,6 +19,7 @@
     "next": "Siguiente",
     "previous": "Anterior",
     "submit": "Enviar",
+    "uploading": "Subiendo",
     "create": "Crear",
     "update": "Actualizar",
     "share": "Compartir",
@@ -211,6 +212,7 @@
     "addOption": "Agregar opción",
     "optimizing": "Optimizando",
     "uploading": "Subiendo",
+    "failedUpload": "Error al subir",
     "feelingLink": "Sentimiento/actividad",
     "feelingQuestion": "¿Cómo te sientes?",
     "feelings": {
@@ -433,7 +435,8 @@
     "conditionRefurbished": "Reacondicionado",
     "conditionLabel": "Condición",
     "saveProduct": "Guardar",
-    "unsaveProduct": "Quitar"
+    "unsaveProduct": "Quitar",
+    "location": "Ubicación"
   },
   "settings": {
     "title": "Configuración",
